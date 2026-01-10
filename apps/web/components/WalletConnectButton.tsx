@@ -1,8 +1,10 @@
 "use client";
 
+import { connectWallet } from "@/lib/wallet";
+
 export function WalletConnectButton() {
   return (
-    <button className="border px-4 py-2 rounded">
+    <button className="border px-3 py-1 rounded" onClick={connectWallet}>
       Connect Wallet
     </button>
   );
