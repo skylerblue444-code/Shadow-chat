@@ -1,0 +1,7 @@
+export async function connectWallet() {
+  alert("Wallet connection placeholder");
+}
+
+export async function tipUser(userId: string) {
+  alert(`Tipped ${userId}`);
+}
