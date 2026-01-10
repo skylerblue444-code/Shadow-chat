@@ -1,10 +1,12 @@
 "use client";
 
-export function TipButton({ to }: { to: string }) {
+import { tipUser } from "@/lib/wallet";
+
+export function TipButton({ userId }: { userId: string }) {
   return (
     <button
-      className="px-3 py-1 text-sm border rounded"
-      onClick={() => alert(`Tip sent to ${to}`)}
+      className="border px-2 py-1 text-xs rounded"
+      onClick={() => tipUser(userId)}
     >
       Tip
     </button>
