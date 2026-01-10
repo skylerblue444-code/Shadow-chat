@@ -37,3 +37,19 @@ model Reaction {
 
   @@unique([userId, postId])
 }
+model MessageRoom {
+  id           String    @id @default(uuid())
+  participants User[] 
+  messages     Message[]
+  createdAt    DateTime  @default(now())
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  roomId    String
+  senderId  String
+  content   String
+  room      MessageRoom @relation(fields: [roomId], references: [id])
+  sender    User        @relation(fields: [senderId], references: [id])
+  createdAt DateTime    @default(now())
+}
