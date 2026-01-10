@@ -1,11 +1,20 @@
-import { Message } from "@/types/message";
-import { UserBadge } from "./UserBadge";
+"use client";
 
-export function MessageBubble({ message }: { message: Message }) {
+import { motion } from "framer-motion";
+import { fadeInUp } from "../lib/motion";
+
+export default function MessageBubble({ message }: any) {
   return (
-    <div className="py-1">
-      <UserBadge userId={message.authorId} />{" "}
-      <span>{message.body}</span>
-    </div>
+    <motion.div
+      variants={fadeInUp}
+      initial="hidden"
+      animate="visible"
+      className="mb-2"
+    >
+      <span className="text-sm text-gray-400">{message.from}</span>
+      <div className="bg-bg inline-block px-3 py-1 rounded ml-2">
+        {message.text}
+      </div>
+    </motion.div>
   );
 }
