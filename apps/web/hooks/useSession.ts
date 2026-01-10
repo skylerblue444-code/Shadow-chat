@@ -1,6 +1,16 @@
+import { useEffect, useState } from "react";
+import { api } from "../lib/api";
+
 export function useSession() {
-  return {
-    user: { id: 1, name: "Demo User" },
-    authenticated: true
-  };
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api("/users/me")
+      .then(setUser)
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  return { user, loading };
 }
