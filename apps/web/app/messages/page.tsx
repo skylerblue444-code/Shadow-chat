@@ -1,24 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { ChatRoom } from "@/components/ChatRoom";
 
 export default function MessagesPage() {
-  const [messages, setMessages] = useState<any[]>([]);
-
-  useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/messages`)
-      .then((r) => r.json())
-      .then(setMessages);
-  }, []);
-
   return (
-    <main className="p-6">
-      <h1 className="text-lg font-semibold">Messages</h1>
-      {messages.map((m) => (
-        <div key={m.id} className="border-b py-2">
-          {m.body}
-        </div>
-      ))}
+    <main className="p-6 max-w-xl mx-auto">
+      <h1 className="text-lg mb-4">Messages</h1>
+      <ChatRoom chatId="global" />
     </main>
   );
 }
