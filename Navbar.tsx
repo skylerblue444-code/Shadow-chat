@@ -1,0 +1,1 @@
+<Link href="/wallet">Wallet</Link>
