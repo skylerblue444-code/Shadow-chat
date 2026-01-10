@@ -1,12 +1,23 @@
 "use client";
 
+import { useState } from "react";
+import { Modal } from "./Modal";
+
 export function VoiceButton() {
+  const [open, setOpen] = useState(false);
+
   return (
-    <button
-      className="px-4 py-2 rounded bg-black text-white"
-      onClick={() => alert("Voice capture requires confirmation")}
-    >
-      Hold to Talk
-    </button>
+    <>
+      <button
+        className="border px-3 py-1 rounded"
+        onClick={() => setOpen(true)}
+      >
+        Hold to Talk
+      </button>
+
+      <Modal open={open} onClose={() => setOpen(false)}>
+        <p>Voice capture requires confirmation.</p>
+      </Modal>
+    </>
   );
 }
