@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { clickFeedback } from "../lib/feedback";
 
-export default function PrimaryButton({ children }: any) {
+export default function PrimaryButton({ children }: { children: React.ReactNode }) {
   return (
     <motion.button
       whileHover={{ scale: 1.06 }}
