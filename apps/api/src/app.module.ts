@@ -1,23 +1,14 @@
 import { Module } from "@nestjs/common";
-import { HealthModule } from "./health/health.module";
-import { AuthModule } from "./auth/auth.module";
-import { UsersModule } from "./users/users.module";
-import { MessagingModule } from "./messaging/messaging.module";
-import { AiModule } from "./ai/ai.module";
-import { WalletModule } from "./wallet/wallet.module";
-import { ModerationModule } from "./moderation/moderation.module";
-import { AdminModule } from "./admin/admin.module";
+import { FEATURES } from "./common/feature-flags";
+
+const modules = [];
+
+if (FEATURES.ADMIN) {
+  const { AdminModule } = require("./modules/admin/admin.module");
+  modules.push(AdminModule);
+}
 
 @Module({
-  imports: [
-    HealthModule,
-    AuthModule,
-    UsersModule,
-    MessagingModule,
-    AiModule,
-    WalletModule,
-    ModerationModule,
-    AdminModule
-  ]
+  imports: [...modules],
 })
 export class AppModule {}
