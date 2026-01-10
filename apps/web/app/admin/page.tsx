@@ -1,8 +1,12 @@
+import FeatureToggle from "../../components/FeatureToggle";
+import UserModeration from "../../components/UserModeration";
+
 export default function AdminPage() {
   return (
-    <main className="p-6">
-      <h1 className="text-lg font-semibold">Admin</h1>
-      <p>Read-only mode enabled</p>
-    </main>
+    <div className="space-y-6 max-w-3xl">
+      <h2 className="text-2xl font-semibold">Admin Dashboard</h2>
+      <FeatureToggle />
+      <UserModeration />
+    </div>
   );
 }
