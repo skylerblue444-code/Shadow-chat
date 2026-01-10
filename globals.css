@@ -3,3 +3,8 @@
   backdrop-filter: blur(14px);
   border: 1px solid rgba(255,255,255,0.05);
 }
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+html {
+  font-family: Inter, system-ui, sans-serif;
+}
