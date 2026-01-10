@@ -1,14 +1,7 @@
-"use client";
-
-import { tipUser } from "@/lib/wallet";
-
-export function TipButton({ userId }: { userId: string }) {
+export default function TipButton() {
   return (
-    <button
-      className="border px-2 py-1 text-xs rounded"
-      onClick={() => tipUser(userId)}
-    >
-      Tip
+    <button className="bg-accent px-3 py-1 rounded text-sm">
+      💸 Tip Creator
     </button>
   );
 }
