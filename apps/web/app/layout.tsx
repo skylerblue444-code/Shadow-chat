@@ -1,19 +1,13 @@
 import "./globals.css";
-import type { Metadata } from "next";
+import Navbar from "../components/Navbar";
 
-export const metadata: Metadata = {
-  title: "ShadowChat",
-  description: "Privacy-first social platform",
-};
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Navbar />
+        <main className="p-6">{children}</main>
+      </body>
     </html>
   );
 }
