@@ -1,13 +1,10 @@
-"use client";
-
-import { login } from "@/lib/auth";
-import { AuthForm } from "@/components/AuthForm";
-
 export default function LoginPage() {
   return (
-    <main className="p-6 max-w-sm mx-auto">
-      <h1 className="text-xl mb-4">Login</h1>
-      <AuthForm onSubmit={login} />
-    </main>
+    <div className="max-w-sm mx-auto">
+      <h2 className="text-xl mb-4">Login</h2>
+      <input className="w-full p-2 mb-2 bg-panel" placeholder="Email" />
+      <input className="w-full p-2 mb-4 bg-panel" placeholder="Password" />
+      <button className="w-full bg-accent p-2">Sign In</button>
+    </div>
   );
 }
