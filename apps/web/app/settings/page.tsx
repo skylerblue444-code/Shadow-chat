@@ -1,8 +1,10 @@
 export default function SettingsPage() {
   return (
-    <main className="p-6">
-      <h1 className="text-lg">Settings</h1>
-      <p>Preferences coming soon</p>
-    </main>
+    <div className="max-w-lg">
+      <h2 className="text-xl mb-4">Settings</h2>
+      <label className="block mb-2">
+        <input type="checkbox" /> Dark Mode
+      </label>
+    </div>
   );
 }
