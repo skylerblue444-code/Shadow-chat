@@ -1,28 +1,20 @@
-"use client";
+import MessageBubble from "./MessageBubble";
+import ChatInput from "./ChatInput";
+import ChatHeader from "./ChatHeader";
 
-import { useState } from "react";
-import { Message } from "@/types/message";
-import { MessageBubble } from "./MessageBubble";
-import { MessageInput } from "./MessageInput";
-import { useSocket } from "@/hooks/useSocket";
+const messages = [
+  { id: 1, from: "Alice", text: "Hey" },
+  { id: 2, from: "Bob", text: "Still private 👀" }
+];
 
-export function ChatRoom({ chatId }: { chatId: string }) {
-  const [messages, setMessages] = useState<Message[]>([]);
-
-  useSocket((msg) => {
-    if (msg.chatId === chatId) {
-      setMessages((m) => [...m, msg]);
-    }
-  });
-
+export default function ChatRoom() {
   return (
-    <div className="border p-3 rounded">
-      <div className="space-y-1 max-h-64 overflow-y-auto">
-        {messages.map((m) => (
-          <MessageBubble key={m.id} message={m} />
-        ))}
-      </div>
-      <MessageInput chatId={chatId} />
+    <div className="bg-panel p-4 rounded">
+      <ChatHeader />
+      {messages.map(m => (
+        <MessageBubble key={m.id} message={m} />
+      ))}
+      <ChatInput />
     </div>
   );
 }
