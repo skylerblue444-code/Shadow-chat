@@ -1,17 +1,14 @@
 import AnimatedPage from "@/components/AnimatedPage";
 
-export default function HomePage() {
+export default function FeedPage() {
   return (
     <AnimatedPage>
-      <section className="py-20 text-center space-y-6 fade-up">
-        <h1 className="text-4xl font-bold tracking-tight">
-          Private. Powerful. ShadowChat.
-        </h1>
-        <p className="text-neutral-400 max-w-xl mx-auto">
-          A next-generation social platform built for privacy, creators,
-          and communities.
-        </p>
-      </section>
+      <div className="space-y-6">
+        <h2 className="text-xl font-semibold">Your Feed</h2>
+        <div className="text-neutral-500 text-sm">
+          No posts yet. Follow users to populate your feed.
+        </div>
+      </div>
     </AnimatedPage>
   );
 }
