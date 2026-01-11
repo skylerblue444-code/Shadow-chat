@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ShadowChat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #0b0f1a;
+      --panel: #12182a;
+      --accent: #7aa2ff;
+      --text: #eaeaf0;
+      --muted: #9aa4c7;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .app {
+      width: 100%;
+      max-width: 420px;
+      background: var(--panel);
+      border-radius: 14px;
+      padding: 1.5rem;
+      box-shadow: 0 0 40px rgba(0,0,0,.5);
+    }
+    h1 {
+      margin: 0 0 .25rem 0;
+      color: var(--accent);
+      font-size: 1.4rem;
+    }
+    p {
+      margin: 0 0 1rem 0;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+    .chat {
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 10px;
+      height: 240px;
+      padding: .75rem;
+      overflow-y: auto;
+      margin-bottom: .75rem;
+      font-size: .9rem;
+    }
+    .input {
+      display: flex;
+      gap: .5rem;
+    }
+    input {
+      flex: 1;
+      background: #0f1424;
+      border: none;
+      border-radius: 8px;
+      padding: .6rem .7rem;
+      color: var(--text);
+    }
+    button {
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      padding: .6rem .9rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>ShadowChat</h1>
+    <p>Private • Real-time • Experimental</p>
+
+    <div class="chat">
+      <div>🟢 System: UI online</div>
+      <div>🟣 Shadow: waiting…</div>
+    </div>
+
+    <div class="input">
+      <input placeholder="Type a message…" />
+      <button>Send</button>
+    </div>
+  </div>
+</body>
+</html>
