@@ -1,60 +1,1751 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ShadowChat</title>
-  
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-  
-  <!-- CSS -->
-  <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ShadowChat — Private. Real. Yours.</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+–bg:        #080c12;
+–panel:     #0d1420;
+–card:      #111927;
+–elevated:  #151e2a;
+–border:    rgba(255,255,255,0.06);
+–border2:   rgba(255,255,255,0.11);
+–plasma:    #00ffe0;
+–blue:      #0077ff;
+–danger:    #ff3f5f;
+–success:   #00e5a0;
+–text:      #d8e8f2;
+–soft:      #8da0b0;
+–muted:     #3d5060;
+–glass-bg:  rgba(13,20,32,0.8);
+–font-d:    ‘Bebas Neue’, sans-serif;
+–font-b:    ‘DM Sans’, sans-serif;
+–font-m:    ‘JetBrains Mono’, monospace;
+–r:         11px;
+}
+
+html, body { height:100%; overflow:hidden; }
+body { font-family:var(–font-b); background:var(–bg); color:var(–text); font-size:14px; line-height:1.5; }
+
+body::before {
+content:’’; position:fixed; inset:0; pointer-events:none; z-index:0;
+background-image: linear-gradient(rgba(0,255,224,0.02) 1px, transparent 1px), linear-gradient(90deg,rgba(0,255,224,0.02) 1px,transparent 1px);
+background-size:52px 52px;
+animation: gridScroll 25s linear infinite;
+}
+@keyframes gridScroll { to { background-position:52px 52px; } }
+
+body::after {
+content:’’; position:fixed; inset:0; pointer-events:none; z-index:0;
+background: radial-gradient(600px at 80% -10%,rgba(0,255,224,0.04),transparent 60%), radial-gradient(500px at -10% 90%,rgba(0,119,255,0.05),transparent 60%);
+}
+
+:focus-visible { outline:2px solid var(–plasma); outline-offset:2px; }
+
+- { transition:background-color 0.15s,color 0.15s,border-color 0.15s,opacity 0.15s; }
+  ::-webkit-scrollbar { width:4px; } ::-webkit-scrollbar-track { background:transparent; } ::-webkit-scrollbar-thumb { background:var(–border2); border-radius:4px; }
+
+.glass { background:var(–glass-bg); backdrop-filter:blur(16px); border:1px solid var(–border); }
+.elevated { box-shadow:0 10px 40px rgba(0,0,0,0.5); }
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes slideIn { from{transform:translateX(80px);opacity:0} to{transform:translateX(0);opacity:1} }
+
+/* ===== AUTH ===== */
+#auth-screen {
+position:fixed; inset:0; z-index:50;
+display:flex; align-items:center; justify-content:center; padding:20px;
+background:var(–bg);
+}
+.auth-wrap { position:relative; z-index:1; width:100%; max-width:420px; animation:fadeUp 0.5s cubic-bezier(0.16,1,0.3,1); }
+.brand { text-align:center; margin-bottom:36px; }
+.brand-name {
+font-family:var(–font-d); font-size:56px; letter-spacing:3px; line-height:1;
+background:linear-gradient(135deg,var(–plasma),var(–blue));
+-webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
+.brand-tag { font-family:var(–font-m); font-size:11px; color:var(–muted); letter-spacing:0.15em; text-transform:uppercase; margin-top:6px; }
+
+.auth-card { background:var(–panel); border:1px solid var(–border2); border-radius:18px; padding:36px 32px; box-shadow:0 0 80px rgba(0,255,224,0.04),0 40px 80px rgba(0,0,0,0.5); }
+
+.tab-row { display:flex; gap:4px; background:var(–bg); border:1px solid var(–border); padding:4px; border-radius:10px; margin-bottom:28px; }
+.tab-btn { flex:1; padding:9px 0; border:none; background:transparent; color:var(–soft); font-family:var(–font-m); font-size:11px; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; border-radius:7px; }
+.tab-btn.active { background:var(–card); color:var(–plasma); border:1px solid rgba(0,255,224,0.2); box-shadow:0 0 12px rgba(0,255,224,0.08); }
+
+.field { margin-bottom:16px; }
+.field label { display:block; font-family:var(–font-m); font-size:10px; color:var(–muted); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:8px; }
+.field input { width:100%; background:var(–bg); border:1px solid var(–border2); border-radius:8px; padding:12px 14px; color:var(–text); font-family:var(–font-b); font-size:14px; outline:none; }
+.field input:focus { border-color:var(–plasma); box-shadow:0 0 0 3px rgba(0,255,224,0.08); }
+.field input::placeholder { color:var(–muted); }
+
+.btn-primary { width:100%; margin-top:8px; padding:13px; background:linear-gradient(135deg,var(–plasma),#00c8b0); color:var(–bg); border:none; border-radius:9px; font-family:var(–font-d); font-size:20px; letter-spacing:2px; cursor:pointer; }
+.btn-primary:hover { box-shadow:0 0 24px rgba(0,255,224,0.35); transform:translateY(-1px); }
+
+.error-msg { background:rgba(255,63,95,0.1); border:1px solid rgba(255,63,95,0.3); color:var(–danger); padding:10px 14px; border-radius:8px; font-family:var(–font-m); font-size:11px; margin-bottom:16px; display:none; }
+
+/* ===== APP SHELL ===== */
+#app-screen { display:none; height:100vh; flex-direction:column; position:relative; z-index:1; }
+
+/* ===== NAVBAR — your Navbar.tsx ===== */
+.navbar { position:sticky; top:0; z-index:50; height:54px; background:rgba(8,12,18,0.88); backdrop-filter:blur(20px); border-bottom:1px solid var(–border); display:flex; align-items:center; padding:0 20px; gap:16px; flex-shrink:0; }
+.nav-brand { font-family:var(–font-d); font-size:22px; letter-spacing:1px; background:linear-gradient(135deg,var(–plasma),var(–blue)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; flex-shrink:0; }
+.nav-links { display:flex; gap:4px; background:var(–panel); border:1px solid var(–border); padding:4px; border-radius:10px; margin:0 auto; }
+.nav-link { padding:6px 16px; border:none; background:transparent; color:var(–soft); font-family:var(–font-m); font-size:11px; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; border-radius:6px; }
+.nav-link.active { background:var(–plasma); color:var(–bg); font-weight:600; }
+.nav-right { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+.avatar { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(–blue),var(–plasma)); display:flex; align-items:center; justify-content:center; font-family:var(–font-d); font-size:15px; color:var(–bg); flex-shrink:0; border:1px solid rgba(0,255,224,0.2); }
+.nav-username { font-family:var(–font-m); font-size:11px; color:var(–soft); }
+.btn-logout { background:none; border:1px solid var(–border2); color:var(–muted); padding:5px 12px; border-radius:6px; font-family:var(–font-m); font-size:10px; cursor:pointer; letter-spacing:0.05em; }
+.btn-logout:hover { border-color:var(–danger); color:var(–danger); }
+
+/* ===== LAYOUT — Sidebar + Main ===== */
+.app-body { display:flex; flex:1; overflow:hidden; }
+
+/* ===== SIDEBAR — your Sidebar.tsx ===== */
+.sidebar { width:192px; flex-shrink:0; background:var(–panel); border-right:1px solid var(–border); padding:16px 10px; display:flex; flex-direction:column; gap:3px; }
+.sidebar-label { font-family:var(–font-m); font-size:9px; color:var(–muted); letter-spacing:0.15em; text-transform:uppercase; padding:6px 10px 8px; }
+.sidebar-item { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:8px; color:var(–soft); font-size:13px; font-weight:500; cursor:pointer; border:1px solid transparent; background:none; width:100%; text-align:left; }
+.sidebar-item:hover { background:var(–card); color:var(–text); }
+.sidebar-item.active { background:var(–card); color:var(–plasma); border-color:rgba(0,255,224,0.12); }
+.sidebar-item .si { font-size:14px; width:18px; text-align:center; }
+.sidebar-bottom { margin-top:auto; padding-top:14px; border-top:1px solid var(–border); }
+.status-pill { display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:8px; background:var(–card); border:1px solid var(–border); }
+.status-dot { width:7px; height:7px; border-radius:50%; background:var(–success); flex-shrink:0; animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.status-text { font-family:var(–font-m); font-size:10px; color:var(–success); }
+
+.main-content { flex:1; overflow:hidden; display:flex; flex-direction:column; }
+
+/* ===== PANELS ===== */
+.panel { display:none; flex:1; overflow-y:auto; }
+.panel.active { display:flex; flex-direction:column; }
+
+/* ===== FEED — your FeedPage + Post + PostCard ===== */
+.feed-wrap { max-width:620px; width:100%; margin:0 auto; padding:24px 16px; display:flex; flex-direction:column; gap:16px; }
+
+.composer { background:var(–card); border:1px solid var(–border2); border-radius:var(–r); padding:18px; animation:fadeUp 0.4s ease; }
+.composer-row { display:flex; gap:12px; align-items:flex-start; margin-bottom:12px; }
+.composer textarea { flex:1; background:var(–panel); border:1px solid var(–border); border-radius:8px; padding:11px 13px; color:var(–text); font-family:var(–font-b); font-size:14px; resize:none; outline:none; height:72px; }
+.composer textarea:focus { border-color:rgba(0,255,224,0.4); }
+.composer textarea::placeholder { color:var(–muted); }
+.composer-foot { display:flex; justify-content:space-between; align-items:center; }
+.char-count { font-family:var(–font-m); font-size:11px; color:var(–muted); }
+.btn-post { background:linear-gradient(135deg,var(–plasma),#00b8a0); color:var(–bg); border:none; border-radius:8px; padding:9px 22px; font-family:var(–font-d); font-size:17px; letter-spacing:1px; cursor:pointer; }
+.btn-post:hover { box-shadow:0 0 18px rgba(0,255,224,0.3); }
+
+/* PostCard — your PostCard.tsx */
+.post-card { background:var(–card); border:1px solid var(–border); border-radius:var(–r); padding:18px; animation:fadeUp 0.3s ease; }
+.post-card:hover { border-color:var(–border2); }
+
+/* UserBadge — your UserBadge.tsx */
+.user-badge { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.user-badge-name { font-weight:600; font-size:14px; }
+.user-badge-handle { font-family:var(–font-m); font-size:11px; color:var(–muted); }
+
+.post-content { font-size:14px; line-height:1.75; color:#b8ccd8; margin-bottom:14px; white-space:pre-wrap; word-break:break-word; }
+
+/* ReactionBar — your LIKE, LAUGH, FIRE types */
+.reaction-bar { display:flex; gap:6px; padding-top:12px; border-top:1px solid var(–border); }
+.reaction-btn { display:flex; align-items:center; gap:5px; background:none; border:1px solid var(–border); color:var(–muted); padding:5px 12px; border-radius:20px; font-family:var(–font-m); font-size:11px; cursor:pointer; }
+.reaction-btn:hover { border-color:var(–plasma); color:var(–plasma); }
+.reaction-btn.active { border-color:var(–plasma); color:var(–plasma); background:rgba(0,255,224,0.07); }
+
+.empty-state { text-align:center; padding:60px 20px; color:var(–muted); }
+.empty-state .ei { font-size:44px; margin-bottom:14px; }
+.empty-state p { font-size:13px; line-height:1.7; }
+
+/* ===== MESSAGES — your ChatRoom.tsx ===== */
+.messages-layout { display:flex; flex:1; overflow:hidden; }
+
+.users-panel { width:230px; flex-shrink:0; border-right:1px solid var(–border); display:flex; flex-direction:column; background:var(–panel); }
+.users-panel-head { padding:14px 16px; border-bottom:1px solid var(–border); font-family:var(–font-m); font-size:10px; color:var(–muted); letter-spacing:0.12em; text-transform:uppercase; }
+.users-list { overflow-y:auto; flex:1; }
+.user-item { display:flex; align-items:center; gap:11px; padding:13px 16px; border-bottom:1px solid var(–border); cursor:pointer; }
+.user-item:hover { background:var(–card); }
+.user-item.active { background:var(–card); border-left:2px solid var(–plasma); }
+.user-item-info { flex:1; min-width:0; }
+.user-item-name { font-weight:600; font-size:13px; }
+.user-item-preview { font-size:11px; color:var(–muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+.online-dot { width:7px; height:7px; border-radius:50%; background:var(–success); flex-shrink:0; }
+
+/* ChatRoom — your ChatRoom.tsx */
+.chat-room { flex:1; display:flex; flex-direction:column; overflow:hidden; background:var(–bg); }
+
+/* ChatHeader — your ChatHeader.tsx */
+.chat-header { padding:14px 20px; border-bottom:1px solid var(–border); background:var(–panel); display:flex; align-items:center; gap:12px; }
+.chat-header-name { font-weight:600; font-size:15px; }
+.chat-header-status { font-family:var(–font-m); font-size:10px; color:var(–success); }
+
+.chat-messages { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:10px; }
+
+/* MessageBubble — your MessageBubble.tsx */
+.msg-bubble { max-width:68%; animation:fadeUp 0.2s ease; }
+.msg-bubble.mine { align-self:flex-end; }
+.msg-bubble.theirs { align-self:flex-start; }
+.bubble-from { font-family:var(–font-m); font-size:10px; color:var(–muted); margin-bottom:3px; padding:0 4px; }
+.mine .bubble-from { text-align:right; }
+.bubble-body { padding:10px 14px; border-radius:14px; font-size:13px; line-height:1.6; word-break:break-word; }
+.mine .bubble-body { background:linear-gradient(135deg,var(–plasma),#00b8a0); color:var(–bg); border-bottom-right-radius:3px; }
+.theirs .bubble-body { background:var(–card); border:1px solid var(–border2); border-bottom-left-radius:3px; }
+.bubble-time { font-family:var(–font-m); font-size:9px; color:var(–muted); padding:3px 4px; }
+.mine .bubble-time { text-align:right; }
+
+/* ChatInput — your ChatInput.tsx */
+.chat-input-row { padding:14px 16px; border-top:1px solid var(–border); background:var(–panel); display:flex; gap:10px; align-items:flex-end; }
+.chat-input { flex:1; background:var(–card); border:1px solid var(–border2); border-radius:10px; padding:11px 14px; color:var(–text); font-family:var(–font-b); font-size:13px; resize:none; outline:none; max-height:100px; overflow-y:auto; }
+.chat-input:focus { border-color:rgba(0,255,224,0.35); }
+.chat-input::placeholder { color:var(–muted); }
+.btn-send { width:44px; height:44px; background:linear-gradient(135deg,var(–plasma),#00b8a0); border:none; border-radius:10px; color:var(–bg); font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.btn-send:hover { box-shadow:0 0 16px rgba(0,255,224,0.4); }
+
+.no-chat { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:var(–muted); }
+.no-chat .icon { font-size:44px; }
+.no-chat p { font-family:var(–font-m); font-size:12px; }
+
+/* ===== PROFILE — your ProfileCard.tsx ===== */
+.profile-wrap { max-width:540px; margin:0 auto; padding:32px 16px; display:flex; flex-direction:column; gap:16px; }
+.profile-card { background:var(–card); border:1px solid var(–border2); border-radius:var(–r); padding:28px 24px; display:flex; align-items:center; gap:20px; animation:fadeUp 0.4s ease; }
+.profile-avatar { width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg,var(–blue),var(–plasma)); display:flex; align-items:center; justify-content:center; font-family:var(–font-d); font-size:34px; color:var(–bg); border:2px solid rgba(0,255,224,0.25); flex-shrink:0; }
+.profile-info h2 { font-family:var(–font-d); font-size:28px; letter-spacing:1px; }
+.profile-info .handle { font-family:var(–font-m); font-size:11px; color:var(–muted); margin-top:4px; }
+.profile-stats { display:flex; gap:24px; margin-top:14px; }
+.stat { text-align:center; }
+.stat-num { font-family:var(–font-d); font-size:22px; color:var(–plasma); }
+.stat-label { font-family:var(–font-m); font-size:10px; color:var(–muted); letter-spacing:0.08em; text-transform:uppercase; }
+.section-head { font-family:var(–font-m); font-size:10px; color:var(–muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:12px; }
+
+/* ===== SETTINGS ===== */
+.settings-wrap { max-width:540px; margin:0 auto; padding:32px 16px; display:flex; flex-direction:column; gap:16px; }
+.settings-card { background:var(–card); border:1px solid var(–border); border-radius:var(–r); padding:20px 22px; animation:fadeUp 0.4s ease; }
+.settings-card h3 { font-family:var(–font-m); font-size:10px; color:var(–muted); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:16px; }
+.setting-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(–border); }
+.setting-row:last-child { border-bottom:none; }
+.setting-label { font-size:14px; font-weight:500; }
+.setting-desc { font-size:12px; color:var(–muted); margin-top:2px; }
+.toggle { width:40px; height:22px; background:var(–border2); border-radius:11px; cursor:pointer; position:relative; border:none; flex-shrink:0; }
+.toggle.on { background:var(–plasma); }
+.toggle::after { content:’’; position:absolute; width:16px; height:16px; border-radius:50%; background:white; top:3px; left:3px; transition:left 0.2s; }
+.toggle.on::after { left:21px; }
+
+/* ===== TOAST ===== */
+.toast { position:fixed; bottom:24px; right:24px; z-index:999; background:var(–card); border:1px solid rgba(0,255,224,0.3); color:var(–plasma); padding:11px 20px; border-radius:10px; font-family:var(–font-m); font-size:12px; box-shadow:0 0 24px rgba(0,255,224,0.12); animation:slideIn 0.3s ease; }
+/* ===== VISION PANEL ===== */
+.vision-wrap { max-width:780px; margin:0 auto; padding:40px 20px 80px; display:flex; flex-direction:column; gap:48px; }
+
+.vision-hero { text-align:center; padding:60px 20px 40px; animation:fadeUp 0.6s ease; }
+.vision-alert { font-family:var(–font-m); font-size:13px; color:var(–plasma); letter-spacing:0.1em; margin-bottom:28px; }
+.vision-h1 { font-family:var(–font-d); font-size:clamp(32px,6vw,60px); letter-spacing:1px; line-height:1.1; margin-bottom:20px; }
+.plasma-text { background:linear-gradient(135deg,var(–plasma),var(–blue)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.vision-sub { color:var(–soft); font-size:16px; line-height:1.7; max-width:560px; margin:0 auto 32px; }
+.vision-verdict { font-family:var(–font-d); font-size:clamp(28px,5vw,48px); letter-spacing:2px; color:var(–plasma); text-shadow:0 0 40px rgba(0,255,224,0.4); }
+
+.vision-status-bar { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; animation:fadeUp 0.6s 0.1s ease both; }
+.vsb-item { display:flex; align-items:center; gap:8px; background:var(–card); border:1px solid var(–border2); padding:8px 16px; border-radius:20px; font-family:var(–font-m); font-size:11px; color:var(–soft); letter-spacing:0.08em; }
+.vsb-dot { width:6px; height:6px; border-radius:50%; background:var(–success); animation:pulse 2s infinite; }
+.vsb-accent { color:var(–plasma); border-color:rgba(0,255,224,0.25); background:rgba(0,255,224,0.06); }
+
+.vision-section { animation:fadeUp 0.5s ease; }
+.vs-label { font-family:var(–font-m); font-size:10px; color:var(–muted); letter-spacing:0.2em; text-transform:uppercase; margin-bottom:20px; padding-bottom:12px; border-bottom:1px solid var(–border); }
+.vs-intro { color:var(–soft); font-size:15px; line-height:1.75; margin-bottom:24px; }
+.vs-intro strong { color:var(–text); }
+
+.feature-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; }
+.feat-card { background:var(–card); border:1px solid var(–border); border-radius:var(–r); padding:18px 16px; transition:border-color 0.2s,transform 0.2s; }
+.feat-card:hover { border-color:rgba(0,255,224,0.25); transform:translateY(-2px); }
+.feat-icon { font-size:22px; margin-bottom:10px; }
+.feat-name { font-weight:600; font-size:13px; margin-bottom:4px; }
+.feat-desc { font-size:12px; color:var(–muted); line-height:1.5; }
+
+.deep-list { display:flex; flex-direction:column; gap:16px; }
+.deep-item { display:flex; gap:16px; align-items:flex-start; background:var(–card); border:1px solid var(–border); border-radius:var(–r); padding:18px; transition:border-color 0.2s; }
+.deep-item:hover { border-color:var(–border2); }
+.deep-icon { font-size:24px; flex-shrink:0; width:36px; text-align:center; }
+.deep-title { font-weight:600; font-size:14px; margin-bottom:5px; }
+.deep-desc { font-size:13px; color:var(–soft); line-height:1.6; }
+
+.chain-box { background:var(–card); border:1px solid rgba(0,255,224,0.15); border-radius:var(–r); padding:28px; box-shadow:0 0 40px rgba(0,255,224,0.04); }
+.chain-title { font-family:var(–font-d); font-size:24px; letter-spacing:1px; color:var(–plasma); margin-bottom:12px; }
+.chain-desc { color:var(–soft); font-size:14px; margin-bottom:18px; }
+.chain-pills { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+.chain-pill { background:rgba(0,255,224,0.08); border:1px solid rgba(0,255,224,0.2); color:var(–plasma); padding:6px 14px; border-radius:20px; font-family:var(–font-m); font-size:11px; }
+.chain-nopes { display:flex; flex-wrap:wrap; gap:16px; margin-bottom:20px; }
+.chain-nopes span { font-family:var(–font-m); font-size:12px; color:var(–muted); }
+.chain-footer { font-family:var(–font-d); font-size:20px; letter-spacing:1px; color:var(–soft); border-top:1px solid var(–border); padding-top:16px; }
+
+.compare-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.compare-col { background:var(–card); border:1px solid var(–border); border-radius:var(–r); padding:22px; }
+.compare-col.good { border-color:rgba(0,255,224,0.2); background:rgba(0,255,224,0.03); }
+.compare-col.bad { opacity:0.6; }
+.compare-head { font-family:var(–font-d); font-size:18px; letter-spacing:1px; margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(–border); }
+.compare-col.good .compare-head { color:var(–plasma); }
+.compare-item { font-family:var(–font-m); font-size:12px; color:var(–soft); padding:6px 0; border-bottom:1px solid var(–border); }
+.compare-col.good .compare-item { color:var(–text); }
+.compare-item:last-child { border-bottom:none; }
+
+.vision-closer { text-align:center; padding:40px 20px; border-top:1px solid var(–border); }
+.closer-line { font-family:var(–font-m); font-size:14px; color:var(–muted); margin-bottom:8px; }
+.closer-big { font-family:var(–font-d); font-size:clamp(40px,8vw,80px); letter-spacing:3px; background:linear-gradient(135deg,var(–plasma),var(–blue)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin:16px 0 12px; line-height:1; }
+.closer-tag { font-family:var(–font-m); font-size:13px; color:var(–plasma); letter-spacing:0.1em; margin-bottom:32px; }
+/* ===== SHARED PAGE LAYOUT ===== */
+.page-wrap { max-width:820px; margin:0 auto; padding:32px 20px 80px; display:flex; flex-direction:column; gap:32px; }
+.page-hero { text-align:center; padding:40px 20px 32px; }
+.page-hero-tag { font-family:var(–font-m); font-size:11px; letter-spacing:0.15em; color:var(–plasma); margin-bottom:14px; }
+.page-hero-title { font-family:var(–font-d); font-size:clamp(32px,6vw,56px); letter-spacing:1px; line-height:1.1; margin-bottom:14px; }
+.page-hero-sub { color:var(–soft); font-size:15px; line-height:1.7; max-width:520px; margin:0 auto; }
+.section-label { font-family:var(–font-m); font-size:10px; color:var(–muted); letter-spacing:0.18em; text-transform:uppercase; padding-bottom:10px; border-bottom:1px solid var(–border); }
+
+.btn-action { background:linear-gradient(135deg,var(–plasma),#00b8a0); color:var(–bg); border:none; padding:11px 22px; border-radius:9px; font-family:var(–font-d); font-size:16px; letter-spacing:1px; cursor:pointer; }
+.btn-action:hover { box-shadow:0 0 20px rgba(0,255,224,0.35); }
+.btn-action.outline { background:none; border:1px solid var(–border2); color:var(–text); }
+.btn-action.outline:hover { border-color:var(–plasma); color:var(–plasma); box-shadow:none; }
+.btn-action.gold { background:linear-gradient(135deg,#f0c040,#e0a000); color:#000; }
+.btn-action.gold:hover { box-shadow:0 0 20px rgba(240,192,64,0.4); }
+.btn-sm { background:var(–elevated); border:1px solid var(–border2); color:var(–text); padding:6px 14px; border-radius:7px; font-family:var(–font-m); font-size:11px; cursor:pointer; }
+.btn-sm:hover { border-color:var(–plasma); color:var(–plasma); }
+.btn-sm.gold { border-color:rgba(240,192,64,0.4); color:#f0c040; }
+.btn-sm.gold:hover { background:rgba(240,192,64,0.1); }
+
+/* ===== STREAMS ===== */
+.stream-live-banner { background:rgba(255,30,60,0.08); border:1px solid rgba(255,30,60,0.25); border-radius:var(–r); padding:18px 20px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+.slb-pulse { width:12px; height:12px; border-radius:50%; background:#ff1e3c; flex-shrink:0; animation:pulse 1.2s infinite; }
+.slb-info { flex:1; min-width:0; }
+.slb-name { font-weight:600; font-size:14px; margin-bottom:4px; }
+.slb-meta { font-family:var(–font-m); font-size:11px; color:var(–soft); }
+
+.stream-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:16px; }
+.stream-card { background:var(–card); border:1px solid var(–border); border-radius:var(–r); overflow:hidden; transition:border-color 0.2s,transform 0.2s; }
+.stream-card:hover { border-color:var(–border2); transform:translateY(-2px); }
+.stream-thumb { height:130px; display:flex; align-items:center; justify-content:center; position:relative; }
+.stream-thumb-icon { font-size:44px; }
+.live-badge { position:absolute; top:10px; left:10px; background:#ff1e3c; color:white; font-family:var(–font-m); font-size:10px; padding:3px 8px; border-radius:4px; letter-spacing:0.08em; }
+.stream-card-body { padding:14px; display:flex; flex-direction:column; gap:6px; }
+.stream-card-title { font-weight:600; font-size:13px; }
+.stream-card-meta { font-family:var(–font-m); font-size:11px; color:var(–muted); }
+.stream-card-tips { font-family:var(–font-m); font-size:11px; color:var(–success); }
+
+.go-live-card { background:var(–card); border:1px solid var(–border2); border-radius:var(–r); padding:32px 24px; text-align:center; }
+.go-live-title { font-family:var(–font-d); font-size:24px; letter-spacing:1px; margin-bottom:10px; }
+.go-live-desc { color:var(–soft); font-size:14px; line-height:1.7; max-width:480px; margin:0 auto 22px; }
+
+/* ===== MARKETPLACE ===== */
+.market-stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+.mstat { background:var(–card); border:1px solid var(–border); border-radius:var(–r); padding:18px; text-align:center; }
+.mstat-num { font-family:var(–font-d); font-size:26px; letter-spacing:1px; color:var(–plasma); }
+.mstat-label { font-family:var(–font-m); font-size:10px; color:var(–muted); letter-spacing:0.08em; text-transform:uppercase; margin-top:4px; }
+
+.market-tabs { display:flex; gap:4px; background:var(–panel); border:1px solid var(–border); padding:4px; border-radius:10px; width:fit-content; }
+.mtab { padding:8px 18px; border:none; background:transparent; color:var(–soft); font-family:var(–font-m); font-size:11px; letter-spacing:0.06em; cursor:pointer; border-radius:7px; }
+.mtab.active { background:var(–card); color:var(–plasma); border:1px solid rgba(0,255,224,0.2); }
+
+.gig-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px; }
+.gig-card { background:var(–card); border:1px solid var(–border); border-radius:var(–r); padding:18px; display:flex; flex-direction:column; gap:10px; transition:border-color 0.2s,transform 0.2s; }
+.gig-card:hover { border-color:var(–border2); transform:translateY(-2px); }
+.gig-icon { font-size:28px; }
+.gig-title { font-weight:600; font-size:14px; line-height:1.4; }
+.gig-seller { font-family:var(–font-m); font-size:11px; color:var(–muted); }
+.gig-tags { display:flex; flex-wrap:wrap; gap:5px; }
+.gtag { background:rgba(0,255,224,0.07); border:1px solid rgba(0,255,224,0.15); color:var(–plasma); padding:3px 8px; border-radius:4px; font-family:var(–font-m); font-size:10px; }
+.gig-footer { display:flex; align-items:center; justify-content:space-between; margin-top:auto; padding-top:10px; border-top:1px solid var(–border); }
+.gig-price { font-family:var(–font-d); font-size:16px; letter-spacing:0.5px; color:var(–gold); }
+
+.escrow-callout { background:rgba(0,255,224,0.04); border:1px solid rgba(0,255,224,0.15); border-radius:var(–r); padding:20px 22px; display:flex; align-items:center; gap:16px; }
+.escrow-icon { font-size:32px; flex-shrink:0; }
+.escrow-title { font-weight:600; font-size:14px; margin-bottom:5px; color:var(–plasma); }
+.escrow-desc { font-size:13px; color:var(–soft); line-height:1.6; }
+
+/* ===== CHARITY ===== */
+.charity-impact-bar { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+.cib-item { background:var(–card); border:1px solid var(–border); border-radius:var(–r); padding:18px; text-align:center; }
+.cib-num { font-family:var(–font-d); font-size:26px; letter-spacing:1px; color:var(–gold); }
+.cib-label { font-family:var(–font-m); font-size:10px; color:var(–muted); letter-spacing:0.08em; text-transform:uppercase; margin-top:4px; }
+
+.charity-list { display:flex; flex-direction:column; gap:14px; }
+.charity-card { background:var(–card); border:1px solid var(–border); border-radius:var(–r); padding:20px; display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap; transition:border-color 0.2s; }
+.charity-card:hover { border-color:var(–border2); }
+.charity-card.featured { border-color:rgba(240,192,64,0.3); background:rgba(240,192,64,0.03); }
+.cc-left { display:flex; gap:14px; flex:1; min-width:240px; }
+.cc-icon { font-size:32px; flex-shrink:0; }
+.cc-name { font-weight:600; font-size:14px; margin-bottom:5px; }
+.cc-desc { font-size:13px; color:var(–soft); line-height:1.6; margin-bottom:12px; }
+.cc-progress-wrap { display:flex; flex-direction:column; gap:5px; }
+.cc-progress-bar { height:6px; background:var(–border2); border-radius:3px; overflow:hidden; }
+.cc-progress-fill { height:100%; background:linear-gradient(90deg,var(–plasma),var(–blue)); border-radius:3px; }
+.charity-card.featured .cc-progress-fill { background:linear-gradient(90deg,var(–gold),#e08000); }
+.cc-progress-label { font-family:var(–font-m); font-size:10px; color:var(–muted); }
+.cc-right { text-align:center; flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:8px; }
+.cc-raised { font-family:var(–font-d); font-size:28px; letter-spacing:1px; color:var(–gold); }
+.cc-currency { font-family:var(–font-m); font-size:10px; color:var(–muted); }
+.cc-win { font-family:var(–font-m); font-size:10px; color:var(–gold); }
+
+.gamified-give { background:var(–card); border:1px solid rgba(240,192,64,0.2); border-radius:var(–r); padding:28px; text-align:center; }
+.gg-title { font-family:var(–font-d); font-size:28px; letter-spacing:1px; color:var(–gold); margin-bottom:12px; }
+.gg-desc { color:var(–soft); font-size:14px; line-height:1.7; max-width:480px; margin:0 auto 24px; }
+.gg-rewards { display:flex; justify-content:center; gap:16px; flex-wrap:wrap; }
+.gg-reward { background:var(–elevated); border:1px solid var(–border2); border-radius:10px; padding:16px 20px; text-align:center; min-width:100px; }
+.ggr-icon { font-size:24px; margin-bottom:6px; }
+.ggr-label { font-family:var(–font-m); font-size:10px; color:var(–muted); }
+
+/* ===== DREAM ===== */
+.dream-hero { text-align:center; padding:60px 20px 40px; animation:fadeUp 0.6s ease; }
+.dream-tag { font-family:var(–font-m); font-size:12px; letter-spacing:0.15em; color:var(–gold); margin-bottom:16px; }
+.dream-title { font-family:var(–font-d); font-size:clamp(40px,8vw,76px); letter-spacing:2px; line-height:1.05; margin-bottom:16px; }
+.gold-text { background:linear-gradient(135deg,var(–gold),#e0a000); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.dream-sub { color:var(–soft); font-size:15px; line-height:1.7; max-width:480px; margin:0 auto; }
+
+.timeline { display:flex; flex-direction:column; gap:0; position:relative; padding-left:32px; }
+.timeline::before { content:’’; position:absolute; left:8px; top:8px; bottom:8px; width:2px; background:var(–border2); }
+.tl-item { position:relative; padding:0 0 32px 28px; }
+.tl-item:last-child { padding-bottom:0; }
+.tl-dot { position:absolute; left:-24px; top:4px; width:16px; height:16px; border-radius:50%; border:2px solid var(–border2); background:var(–bg); flex-shrink:0; }
+.done-dot { background:var(–success); border-color:var(–success); }
+.active-dot { background:var(–plasma); border-color:var(–plasma); box-shadow:0 0 12px rgba(0,255,224,0.5); animation:pulse 1.5s infinite; }
+.future-dot { background:var(–bg); border-color:var(–muted); }
+.gold-dot { border-color:var(–gold) !important; box-shadow:0 0 12px rgba(240,192,64,0.4) !important; }
+.tl-content { background:var(–card); border:1px solid var(–border); border-radius:var(–r); padding:18px 20px; }
+.tl-item.done .tl-content { border-color:rgba(0,229,160,0.2); }
+.tl-item.active .tl-content { border-color:rgba(0,255,224,0.2); background:rgba(0,255,224,0.02); }
+.tl-phase { font-family:var(–font-m); font-size:10px; color:var(–muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:6px; }
+.tl-item.done .tl-phase { color:var(–success); }
+.tl-item.active .tl-phase { color:var(–plasma); }
+.tl-title { font-family:var(–font-d); font-size:22px; letter-spacing:0.5px; margin-bottom:8px; }
+.tl-desc { font-size:13px; color:var(–soft); line-height:1.7; margin-bottom:12px; }
+.tl-tags { display:flex; flex-wrap:wrap; gap:6px; }
+.tltag { background:var(–elevated); border:1px solid var(–border2); color:var(–soft); padding:3px 10px; border-radius:4px; font-family:var(–font-m); font-size:10px; }
+.done-tag { background:rgba(0,229,160,0.08); border-color:rgba(0,229,160,0.2); color:var(–success); }
+.active-tag { background:rgba(0,255,224,0.07); border-color:rgba(0,255,224,0.2); color:var(–plasma); }
+.gold-tag { background:rgba(240,192,64,0.1); border-color:rgba(240,192,64,0.3); color:var(–gold); }
+
+.dream-manifesto { background:var(–card); border:1px solid rgba(240,192,64,0.2); border-radius:var(–r); padding:40px 28px; text-align:center; }
+.dm-line { font-family:var(–font-m); font-size:14px; color:var(–soft); margin-bottom:8px; font-style:italic; }
+.dm-big { font-family:var(–font-d); font-size:clamp(24px,4vw,40px); letter-spacing:1px; line-height:1.2; margin:24px 0 16px; }
+.dm-tag { font-family:var(–font-m); font-size:14px; color:var(–gold); letter-spacing:0.1em; }
+/* ===== SHADOW MARKET ===== */
+#panel-shadow { background:#05070d; }
+
+/* Gate */
+.sm-gate-wrap { max-width:560px; margin:0 auto; padding:80px 24px; text-align:center; animation:fadeUp 0.5s ease; }
+.sm-gate-skull { font-size:64px; margin-bottom:20px; filter:drop-shadow(0 0 24px rgba(168,85,247,0.5)); }
+.sm-gate-title { font-family:var(–font-d); font-size:52px; letter-spacing:4px; background:linear-gradient(135deg,#a855f7,#6d28d9); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:6px; }
+.sm-gate-sub { font-family:var(–font-m); font-size:11px; color:#6b4fa0; letter-spacing:0.15em; margin-bottom:24px; }
+.sm-gate-desc { color:#6a7a8a; font-size:14px; line-height:1.75; margin-bottom:28px; }
+.sm-gate-rules { background:#0a0d14; border:1px solid rgba(168,85,247,0.15); border-radius:var(–r); padding:20px; margin-bottom:28px; display:flex; flex-direction:column; gap:10px; text-align:left; }
+.sm-rule { display:flex; align-items:flex-start; gap:12px; font-size:13px; color:#8a9ab0; }
+.sm-rule-icon { font-size:16px; flex-shrink:0; }
+.sm-enter-btn { width:100%; padding:15px; background:linear-gradient(135deg,#a855f7,#6d28d9); color:white; border:none; border-radius:10px; font-family:var(–font-d); font-size:20px; letter-spacing:2px; cursor:pointer; box-shadow:0 0 30px rgba(168,85,247,0.25); }
+.sm-enter-btn:hover { box-shadow:0 0 50px rgba(168,85,247,0.45); transform:translateY(-1px); }
+.sm-gate-foot { font-family:var(–font-m); font-size:10px; color:#3a4050; margin-top:14px; }
+
+/* Interior top bar */
+.sm-topbar { display:flex; align-items:center; justify-content:space-between; padding:12px 20px; border-bottom:1px solid rgba(168,85,247,0.15); background:#07090f; flex-wrap:wrap; gap:12px; }
+.sm-skull-logo { font-family:var(–font-d); font-size:20px; letter-spacing:2px; color:#a855f7; }
+.sm-anon-badge { font-family:var(–font-m); font-size:11px; color:#6b4fa0; background:rgba(168,85,247,0.08); border:1px solid rgba(168,85,247,0.2); padding:5px 12px; border-radius:20px; }
+.sm-topbar-right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.sm-wallet-row { display:flex; flex-direction:column; align-items:flex-end; }
+.sm-wlabel { font-family:var(–font-m); font-size:9px; color:#3a4050; letter-spacing:0.1em; }
+.sm-wbal { font-family:var(–font-d); font-size:16px; color:#a855f7; letter-spacing:0.5px; }
+.sm-small-btn { background:#0d1018; border:1px solid rgba(168,85,247,0.25); color:#8a6ab0; padding:7px 14px; border-radius:7px; font-family:var(–font-m); font-size:11px; cursor:pointer; }
+.sm-small-btn:hover { border-color:#a855f7; color:#a855f7; }
+.sm-small-btn.purple { background:rgba(168,85,247,0.12); color:#a855f7; }
+.sm-small-btn.purple:hover { background:rgba(168,85,247,0.2); }
+
+/* Body layout */
+.sm-body { display:flex; flex:1; overflow:hidden; height:calc(100vh - 110px); }
+
+/* Category sidebar */
+.sm-cat-sidebar { width:190px; flex-shrink:0; background:#07090f; border-right:1px solid rgba(168,85,247,0.1); padding:16px 10px; overflow-y:auto; display:flex; flex-direction:column; gap:3px; }
+.sm-cat-label { font-family:var(–font-m); font-size:9px; color:#3a4050; letter-spacing:0.18em; text-transform:uppercase; padding:6px 10px 4px; }
+.sm-cat { background:none; border:none; color:#5a6a80; font-family:var(–font-m); font-size:11px; padding:8px 12px; border-radius:7px; cursor:pointer; text-align:left; width:100%; }
+.sm-cat:hover { background:rgba(168,85,247,0.08); color:#a855f7; }
+.sm-cat.active { background:rgba(168,85,247,0.12); color:#a855f7; border:1px solid rgba(168,85,247,0.2); }
+.sm-filter-row { padding:4px 8px; display:flex; flex-direction:column; gap:4px; margin-bottom:4px; }
+.sm-filter-label { font-family:var(–font-m); font-size:9px; color:#3a4050; }
+.sm-select { background:#0a0d14; border:1px solid rgba(168,85,247,0.15); color:#8a9ab0; font-family:var(–font-m); font-size:11px; padding:5px 8px; border-radius:6px; outline:none; width:100%; }
+
+/* Main area */
+.sm-main { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:16px; }
+
+/* Search + sort */
+.sm-search-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.sm-search { flex:1; min-width:200px; background:#0a0d14; border:1px solid rgba(168,85,247,0.2); border-radius:8px; padding:10px 14px; color:var(–text); font-family:var(–font-m); font-size:12px; outline:none; }
+.sm-search:focus { border-color:#a855f7; }
+.sm-search::placeholder { color:#3a4050; }
+.sm-sort-row { display:flex; gap:4px; }
+.sm-sort { background:#0a0d14; border:1px solid rgba(168,85,247,0.15); color:#5a6a80; padding:7px 14px; border-radius:6px; font-family:var(–font-m); font-size:11px; cursor:pointer; }
+.sm-sort.active { background:rgba(168,85,247,0.12); color:#a855f7; border-color:rgba(168,85,247,0.3); }
+
+/* Stats strip */
+.sm-stats-strip { display:flex; gap:20px; flex-wrap:wrap; font-family:var(–font-m); font-size:11px; color:#4a5a70; border-bottom:1px solid rgba(168,85,247,0.08); padding-bottom:14px; }
+.sm-stats-strip b { color:#8a6ab0; }
+
+/* Listing grid */
+.sm-listing-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; }
+
+/* Listing card */
+.sm-card { background:#0a0d14; border:1px solid rgba(168,85,247,0.15); border-radius:var(–r); padding:18px; display:flex; flex-direction:column; gap:10px; cursor:pointer; transition:border-color 0.2s,transform 0.2s,box-shadow 0.2s; }
+.sm-card:hover { border-color:#a855f7; transform:translateY(-2px); box-shadow:0 0 20px rgba(168,85,247,0.1); }
+.sm-card.gated { border-color:rgba(240,192,64,0.2); }
+.sm-card.gated:hover { border-color:#f0c040; box-shadow:0 0 20px rgba(240,192,64,0.1); }
+.sm-card-header { display:flex; align-items:center; justify-content:space-between; }
+.sm-card-cat { font-family:var(–font-m); font-size:10px; color:#6b4fa0; letter-spacing:0.08em; }
+.sm-card-badge { font-family:var(–font-m); font-size:9px; padding:2px 7px; border-radius:4px; }
+.sm-badge-escrow { background:rgba(0,229,160,0.1); color:#00e5a0; border:1px solid rgba(0,229,160,0.2); }
+.sm-badge-gated { background:rgba(240,192,64,0.1); color:#f0c040; border:1px solid rgba(240,192,64,0.2); }
+.sm-card-icon { font-size:28px; }
+.sm-card-title { font-weight:600; font-size:13px; line-height:1.4; }
+.sm-card-seller { font-family:var(–font-m); font-size:10px; color:#4a5a70; }
+.sm-card-seller span { color:#8a6ab0; }
+.sm-card-rep { font-family:var(–font-m); font-size:10px; color:#6b4fa0; }
+.sm-card-desc { font-size:12px; color:#5a6a80; line-height:1.5; }
+.sm-card-footer { display:flex; align-items:center; justify-content:space-between; padding-top:10px; border-top:1px solid rgba(168,85,247,0.1); margin-top:auto; }
+.sm-card-price { font-family:var(–font-d); font-size:18px; letter-spacing:0.5px; color:#a855f7; }
+.sm-card-price.gold { color:#f0c040; }
+.sm-buy-btn { background:rgba(168,85,247,0.15); border:1px solid rgba(168,85,247,0.3); color:#a855f7; padding:6px 14px; border-radius:7px; font-family:var(–font-m); font-size:11px; cursor:pointer; }
+.sm-buy-btn:hover { background:rgba(168,85,247,0.28); }
+.sm-buy-btn.gold { background:rgba(240,192,64,0.1); border-color:rgba(240,192,64,0.3); color:#f0c040; }
+.sm-buy-btn.gold:hover { background:rgba(240,192,64,0.2); }
+
+/* Tabs */
+.sm-tab-head { font-family:var(–font-d); font-size:24px; letter-spacing:1px; color:#a855f7; margin-bottom:20px; }
+.sm-empty-tab { text-align:center; padding:40px 20px; }
+
+/* Disputes */
+.sm-dispute-info { background:#0a0d14; border:1px solid rgba(168,85,247,0.15); border-radius:var(–r); padding:18px; display:flex; gap:14px; align-items:flex-start; }
+.sdi-icon { font-size:28px; flex-shrink:0; }
+.sdi-title { font-weight:600; font-size:14px; margin-bottom:6px; color:#a855f7; }
+.sdi-desc { font-size:13px; color:#5a6a80; line-height:1.6; }
+
+/* Escrow explainer */
+.sm-escrow-explainer { display:flex; align-items:center; gap:8px; flex-wrap:wrap; background:#0a0d14; border:1px solid rgba(168,85,247,0.15); border-radius:var(–r); padding:20px; margin-bottom:16px; }
+.see-step { display:flex; align-items:center; gap:10px; font-size:13px; color:#8a9ab0; }
+.see-num { width:24px; height:24px; border-radius:50%; background:rgba(168,85,247,0.2); color:#a855f7; font-family:var(–font-m); font-size:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.see-arrow { color:#3a4050; font-size:18px; }
+.sm-escrow-balances { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.seb-card { background:#0a0d14; border:1px solid rgba(168,85,247,0.12); border-radius:var(–r); padding:18px; text-align:center; }
+.seb-label { font-family:var(–font-m); font-size:9px; color:#3a4050; letter-spacing:0.1em; margin-bottom:8px; }
+.seb-val { font-family:var(–font-d); font-size:22px; letter-spacing:0.5px; color:#a855f7; }
+
+/* Modal */
+.sm-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:200; display:flex; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(4px); }
+.sm-modal { background:#0a0d14; border:1px solid rgba(168,85,247,0.3); border-radius:16px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; box-shadow:0 0 60px rgba(168,85,247,0.2); animation:fadeUp 0.3s ease; }
+.sm-modal-head { display:flex; align-items:center; justify-content:space-between; padding:18px 20px; border-bottom:1px solid rgba(168,85,247,0.15); font-family:var(–font-d); font-size:20px; letter-spacing:1px; color:#a855f7; }
+.sm-modal-close { background:none; border:none; color:#5a6a80; font-size:18px; cursor:pointer; padding:4px 8px; border-radius:4px; }
+.sm-modal-close:hover { color:#a855f7; }
+.sm-modal-body { padding:20px; display:flex; flex-direction:column; gap:14px; }
+.sm-mfield { display:flex; flex-direction:column; gap:6px; }
+.sm-mfield label { font-family:var(–font-m); font-size:10px; color:#4a5a70; letter-spacing:0.1em; text-transform:uppercase; }
+.sm-mfield input, .sm-mfield select, .sm-mfield textarea { background:#07090f; border:1px solid rgba(168,85,247,0.2); border-radius:8px; padding:10px 13px; color:var(–text); font-family:var(–font-b); font-size:13px; outline:none; }
+.sm-mfield input:focus, .sm-mfield select:focus, .sm-mfield textarea:focus { border-color:#a855f7; }
+.sm-mfield textarea { height:80px; resize:none; }
+.sm-mfield-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.sm-mcheck { display:flex; align-items:center; gap:10px; font-size:13px; color:#5a6a80; }
+.sm-mcheck input { accent-color:#a855f7; width:16px; height:16px; }
+</style>
+
 </head>
 <body>
-  <header>
-    <h1>ShadowChat</h1>
-    <nav>
-      <button id="btn-feed">Feed</button>
-      <button id="btn-chat">Chat</button>
-      <button id="btn-wallet">Wallet</button>
-    </nav>
-  </header>
 
-  <main>
-    <!-- Feed Section -->
-    <section id="feed" class="active">
-      <h2>Global Feed</h2>
-      <div id="feed-container">
-        <p>Loading feed...</p>
+<!-- AUTH SCREEN -->
+
+<div id="auth-screen">
+  <div class="auth-wrap">
+    <div class="brand">
+      <div class="brand-name">SHADOWCHAT</div>
+      <div class="brand-tag">// private · real · yours</div>
+    </div>
+    <div class="auth-card elevated">
+      <div class="tab-row">
+        <button class="tab-btn active" onclick="switchTab('login')">LOGIN</button>
+        <button class="tab-btn" onclick="switchTab('register')">SIGN UP</button>
       </div>
-    </section>
-
-    <!-- Chat Section -->
-    <section id="chat">
-      <h2>Chat Room</h2>
-      <div id="chat-container">
-        <div id="messages"></div>
-        <input type="text" id="chat-input" placeholder="Type your message..." />
-        <button id="send-btn">Send</button>
+      <div id="auth-error" class="error-msg"></div>
+      <div id="login-form">
+        <div class="field"><label>Username</label><input type="text" id="login-user" placeholder="your_handle" autocomplete="off"/></div>
+        <div class="field"><label>Password</label><input type="password" id="login-pass" placeholder="••••••••"/></div>
+        <button class="btn-primary" onclick="login()">CONTINUE</button>
       </div>
-    </section>
+      <div id="register-form" style="display:none">
+        <div class="field"><label>Username</label><input type="text" id="reg-user" placeholder="choose_your_handle" autocomplete="off"/></div>
+        <div class="field"><label>Password</label><input type="password" id="reg-pass" placeholder="min 6 characters"/></div>
+        <div class="field"><label>Confirm Password</label><input type="password" id="reg-confirm" placeholder="repeat password"/></div>
+        <button class="btn-primary" onclick="register()">CREATE SHADOW ID</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-    <!-- Wallet Section -->
-    <section id="wallet">
-      <h2>Crypto Wallet</h2>
-      <p>BTC: <span id="btc-balance">0</span></p>
-      <p>DOGE: <span id="doge-balance">0</span></p>
-      <p>TrumpCoin: <span id="trump-balance">0</span></p>
-      <button id="refresh-wallet">Refresh</button>
-    </section>
-  </main>
+<!-- APP SCREEN -->
 
-  <footer>
-    <p>© 2026 ShadowChat • Built for Web3 & AI-powered social interaction</p>
-  </footer>
+<div id="app-screen">
 
-  <!-- JS -->
-  <script src="scripts.js"></script>
+  <!-- Navbar — your Navbar.tsx -->
+
+  <nav class="navbar">
+    <div class="nav-brand">SHADOWCHAT</div>
+    <div class="nav-links">
+      <button class="nav-link active" id="nav-feed"      onclick="showPanel('feed')">⚡ Feed</button>
+      <button class="nav-link"       id="nav-messages"  onclick="showPanel('messages')">💬 Chat</button>
+      <button class="nav-link"       id="nav-streams"   onclick="showPanel('streams')">🔴 Live</button>
+      <button class="nav-link"       id="nav-market"    onclick="showPanel('market')">👾 Market</button>
+      <button class="nav-link"       id="nav-charity"   onclick="showPanel('charity')">🍲 Charity</button>
+      <button class="nav-link"       id="nav-profile"   onclick="showPanel('profile')">👤 Me</button>
+      <button class="nav-link"       id="nav-vision"    onclick="showPanel('vision')" style="color:var(--plasma)">💟 Vision</button>
+      <button class="nav-link"       id="nav-dream"     onclick="showPanel('dream')" style="color:var(--gold)">✨ Dream</button>
+      <button class="nav-link"       id="nav-shadow"    onclick="showPanel('shadow')" style="color:#a855f7;border:1px solid rgba(168,85,247,0.25);border-radius:6px">💀 Shadow Market</button>
+    </div>
+    <div class="nav-right">
+      <div class="avatar" id="nav-avatar">?</div>
+      <span class="nav-username" id="nav-uname">—</span>
+      <button class="btn-logout" onclick="logout()">EXIT</button>
+    </div>
+  </nav>
+
+  <div class="app-body">
+
+```
+<!-- Sidebar — your Sidebar.tsx -->
+<aside class="sidebar">
+  <div class="sidebar-label">Navigate</div>
+  <button class="sidebar-item active" id="sb-feed"     onclick="showPanel('feed')"><span class="si">⚡</span>Feed</button>
+  <button class="sidebar-item"        id="sb-messages" onclick="showPanel('messages')"><span class="si">💬</span>Messages</button>
+  <button class="sidebar-item"        id="sb-streams"  onclick="showPanel('streams')"><span class="si">🔴</span>Live Streams</button>
+  <button class="sidebar-item"        id="sb-market"   onclick="showPanel('market')"><span class="si">👾</span>Marketplace</button>
+  <button class="sidebar-item"        id="sb-charity"  onclick="showPanel('charity')"><span class="si">🍲</span>Charity</button>
+  <div class="sidebar-label" style="margin-top:8px">Account</div>
+  <button class="sidebar-item"        id="sb-profile"  onclick="showPanel('profile')"><span class="si">👤</span>Profile</button>
+  <button class="sidebar-item"        id="sb-settings" onclick="showPanel('settings')"><span class="si">⚙</span>Settings</button>
+  <button class="sidebar-item"        id="sb-vision"   onclick="showPanel('vision')" style="color:var(--plasma)"><span class="si">💟</span>Vision</button>
+  <button class="sidebar-item"        id="sb-dream"    onclick="showPanel('dream')" style="color:#f0c040"><span class="si">✨</span>Dream</button>
+  <button class="sidebar-item"        id="sb-shadow"   onclick="showPanel('shadow')" style="color:#a855f7"><span class="si">💀</span>Shadow Market</button>
+  <div class="sidebar-bottom">
+    <div class="status-pill"><div class="status-dot"></div><span class="status-text">LIVE</span></div>
+  </div>
+</aside>
+
+<div class="main-content">
+
+  <!-- FEED PANEL — your FeedPage -->
+  <div class="panel active" id="panel-feed">
+    <div class="feed-wrap">
+      <!-- PostComposer -->
+      <div class="composer">
+        <div class="composer-row">
+          <div class="avatar" id="comp-avatar">?</div>
+          <textarea id="post-input" placeholder="What's happening in the shadows..." maxlength="500" oninput="updateChar()"></textarea>
+        </div>
+        <div class="composer-foot">
+          <span class="char-count"><span id="char-count">0</span>/500</span>
+          <button class="btn-post" onclick="submitPost()">POST →</button>
+        </div>
+      </div>
+      <div id="feed-posts"></div>
+    </div>
+  </div>
+
+  <!-- MESSAGES PANEL — your ChatRoom -->
+  <div class="panel" id="panel-messages">
+    <div class="messages-layout">
+      <div class="users-panel">
+        <div class="users-panel-head">Conversations</div>
+        <div class="users-list" id="users-list"></div>
+      </div>
+      <div class="chat-room" id="chat-room">
+        <div class="no-chat"><div class="icon">👻</div><p>Select a user to start chatting</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFILE PANEL — your ProfileCard -->
+  <div class="panel" id="panel-profile">
+    <div class="profile-wrap">
+      <div class="profile-card elevated">
+        <div class="profile-avatar" id="prof-avatar">?</div>
+        <div class="profile-info">
+          <h2 id="prof-name">—</h2>
+          <div class="handle" id="prof-handle">@—</div>
+          <div class="profile-stats">
+            <div class="stat"><div class="stat-num" id="stat-posts">0</div><div class="stat-label">Posts</div></div>
+            <div class="stat"><div class="stat-num" id="stat-likes">0</div><div class="stat-label">Likes</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="section-head">Your Posts</div>
+      <div id="profile-posts"></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS PANEL -->
+  <div class="panel" id="panel-settings">
+    <div class="settings-wrap">
+      <div class="settings-card elevated">
+        <h3>Privacy</h3>
+        <div class="setting-row"><div><div class="setting-label">Anonymous Mode</div><div class="setting-desc">Hide your identity from non-followers</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+        <div class="setting-row"><div><div class="setting-label">Private Posts</div><div class="setting-desc">Only followers see your posts</div></div><button class="toggle" onclick="this.classList.toggle('on')"></button></div>
+        <div class="setting-row"><div><div class="setting-label">No Shadow Bans</div><div class="setting-desc">Always know your visibility status</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+      </div>
+      <div class="settings-card elevated">
+        <h3>Notifications</h3>
+        <div class="setting-row"><div><div class="setting-label">Message Alerts</div><div class="setting-desc">Get notified on new messages</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+        <div class="setting-row"><div><div class="setting-label">Reaction Alerts</div><div class="setting-desc">Know when someone reacts to your post</div></div><button class="toggle" onclick="this.classList.toggle('on')"></button></div>
+      </div>
+      <div class="settings-card elevated">
+        <h3>Account</h3>
+        <div class="setting-row"><div><div class="setting-label">Logged in as</div><div class="setting-desc" id="settings-uname">—</div></div><button class="btn-logout" onclick="logout()" style="padding:7px 14px">SIGN OUT</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISION PANEL -->
+  <div class="panel" id="panel-vision">
+    <div class="vision-wrap">
+
+      <div class="vision-hero">
+        <div class="vision-alert">‼️ 💟 WEB3 REALITY CHECK 💟 ‼️</div>
+        <h1 class="vision-h1">Over 71% of global users want<br/><span class="plasma-text">decentralization, privacy,<br/>and ownership.</span></h1>
+        <p class="vision-sub">Almost every Web3 startup responds with promises, whitepapers, and roadmaps.<br/>Very few deliver actual infrastructure.</p>
+        <div class="vision-verdict">ShadowChat does.</div>
+      </div>
+
+      <div class="vision-status-bar">
+        <div class="vsb-item"><span class="vsb-dot"></span>NOT PUBLIC YET</div>
+        <div class="vsb-item"><span class="vsb-dot"></span>BUILT QUIETLY</div>
+        <div class="vsb-item"><span class="vsb-dot"></span>BUILT DELIBERATELY</div>
+        <div class="vsb-item vsb-accent">📢 BETA INCOMING</div>
+      </div>
+
+      <div class="vision-section">
+        <div class="vs-label">THE PLATFORM</div>
+        <p class="vs-intro">ShadowChat crossed the line from vision to infrastructure. Most startups launch with one feature. <strong>ShadowChat can launch as a complete system.</strong> That alone puts it in a different category.</p>
+        <div class="feature-grid">
+          <div class="feat-card"><div class="feat-icon">🌐</div><div class="feat-name">Social Network</div><div class="feat-desc">Feeds, reactions, comments, sharing</div></div>
+          <div class="feat-card"><div class="feat-icon">💬</div><div class="feat-name">Messaging</div><div class="feat-desc">Private, group, disappearing</div></div>
+          <div class="feat-card"><div class="feat-icon">🔴</div><div class="feat-name">Live Streaming</div><div class="feat-desc">Tips, moderation, gated access</div></div>
+          <div class="feat-card"><div class="feat-icon">🥽</div><div class="feat-name">Browser VR</div><div class="feat-desc">Immersive rooms, no hardware needed</div></div>
+          <div class="feat-card"><div class="feat-icon">🤖</div><div class="feat-name">AI Controls</div><div class="feat-desc">Opt-in, user-controlled, no dark patterns</div></div>
+          <div class="feat-card"><div class="feat-icon">👛</div><div class="feat-name">Non-Custodial Wallets</div><div class="feat-desc">DEX swaps, your keys, your coins</div></div>
+          <div class="feat-card"><div class="feat-icon">🎙️</div><div class="feat-name">Creator Subs</div><div class="feat-desc">Recurring support, no middlemen</div></div>
+          <div class="feat-card"><div class="feat-icon">👾</div><div class="feat-name">Talent Marketplace</div><div class="feat-desc">Escrow, milestones, disputes, reputation</div></div>
+          <div class="feat-card"><div class="feat-icon">🪙</div><div class="feat-name">Governance</div><div class="feat-desc">Reputation-weighted voting, real execution</div></div>
+          <div class="feat-card"><div class="feat-icon">🛡️</div><div class="feat-name">Admin Safety</div><div class="feat-desc">Audit logs, kill switches, full control</div></div>
+        </div>
+      </div>
+
+      <div class="vision-section">
+        <div class="vs-label">DEEP FEATURES</div>
+        <div class="deep-list">
+          <div class="deep-item"><div class="deep-icon">🔋</div><div><div class="deep-title">AI-Powered Interaction (Done Right)</div><div class="deep-desc">Opt-in AI for feeds, navigation, moderation, and voice — fully user-controlled, no dark patterns.</div></div></div>
+          <div class="deep-item"><div class="deep-icon">👻</div><div><div class="deep-title">Voice-Activated Controls</div><div class="deep-desc">Hands-free posting, tipping, navigation — integrated into core UX, not bolted on later.</div></div></div>
+          <div class="deep-item"><div class="deep-icon">🪙</div><div><div class="deep-title">Tokenized Reputation & Governance</div><div class="deep-desc">Not DAO cosplay. Reputation-weighted voting, capped power, platform-level governance that executes.</div></div></div>
+          <div class="deep-item"><div class="deep-icon">❤️‍🔥</div><div><div class="deep-title">Live Quests & Engagement</div><div class="deep-desc">Real mechanics for participation, challenges, rewards — not "gamification slides."</div></div></div>
+          <div class="deep-item"><div class="deep-icon">🍲</div><div><div class="deep-title">Charity Streams (Non-Custodial)</div><div class="deep-desc">Wallet → cause. No custody. No misuse. No trust theater.</div></div></div>
+          <div class="deep-item"><div class="deep-icon">💀</div><div><div class="deep-title">Privacy by Design</div><div class="deep-desc">Anonymous Shadow IDs. Public or private posting. No shadow bans. No data selling.</div></div></div>
+        </div>
+      </div>
+
+      <div class="vision-section">
+        <div class="vs-label">BLOCKCHAIN POWER</div>
+        <div class="chain-box">
+          <div class="chain-title">⚙️ Without Legal Suicide</div>
+          <p class="chain-desc">ShadowChat supports USDT, BTC, DOGE, and tokenized reputation using:</p>
+          <div class="chain-pills">
+            <div class="chain-pill">Non-custodial wallets</div>
+            <div class="chain-pill">Ledger-based accounting</div>
+            <div class="chain-pill">DEX-style swaps</div>
+            <div class="chain-pill">On-ramp partners</div>
+          </div>
+          <div class="chain-nopes">
+            <span>✗ No exchange custody</span>
+            <span>✗ No imaginary balances</span>
+            <span>✗ No regulatory shortcuts</span>
+          </div>
+          <div class="chain-footer">Built to survive reality, not headlines.</div>
+        </div>
+      </div>
+
+      <div class="vision-section">
+        <div class="vs-label">WHY THIS IS DIFFERENT</div>
+        <div class="compare-grid">
+          <div class="compare-col bad">
+            <div class="compare-head">99% of Startups</div>
+            <div class="compare-item">✗ A landing page</div>
+            <div class="compare-item">✗ A whitepaper</div>
+            <div class="compare-item">✗ A roadmap</div>
+          </div>
+          <div class="compare-col good">
+            <div class="compare-head">ShadowChat</div>
+            <div class="compare-item">✓ Working backend</div>
+            <div class="compare-item">✓ Complete frontend</div>
+            <div class="compare-item">✓ Security hardening</div>
+            <div class="compare-item">✓ Admin controls</div>
+            <div class="compare-item">✓ Kill switches</div>
+            <div class="compare-item">✓ Audit trails</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vision-closer">
+        <div class="closer-line">It's not an idea.</div>
+        <div class="closer-line">It's not a pitch.</div>
+        <div class="closer-big">It's infrastructure.</div>
+        <div class="closer-tag">#catchThemDiamonds</div>
+        <button class="btn-primary" style="max-width:280px;margin:0 auto;display:block;font-size:16px" onclick="showPanel('feed')">ENTER THE PLATFORM →</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== LIVE STREAMS PANEL ===== -->
+  <div class="panel" id="panel-streams">
+    <div class="page-wrap">
+      <div class="page-hero">
+        <div class="page-hero-tag">🔴 LIVE NOW</div>
+        <h2 class="page-hero-title">Live Streams</h2>
+        <p class="page-hero-sub">Tip creators, unlock gated content, and watch in real time — no middlemen.</p>
+      </div>
+
+      <div class="stream-live-banner">
+        <div class="slb-pulse"></div>
+        <div class="slb-info">
+          <div class="slb-name">👑 ShadowLaunch Event — Charity Stream</div>
+          <div class="slb-meta">3,241 watching · 🍲 $4,820 raised for Hope Campus</div>
+        </div>
+        <button class="btn-action" onclick="toast('Joining stream... 🔴')">JOIN LIVE</button>
+      </div>
+
+      <div class="section-label">Featured Streams</div>
+      <div class="stream-grid">
+        <div class="stream-card">
+          <div class="stream-thumb" style="background:linear-gradient(135deg,#1a0a2e,#0a1a3a)">
+            <div class="live-badge">LIVE</div>
+            <div class="stream-thumb-icon">🎮</div>
+          </div>
+          <div class="stream-card-body">
+            <div class="stream-card-title">Late Night Build Session</div>
+            <div class="stream-card-meta">@devwizard · 892 watching</div>
+            <div class="stream-card-tips">💰 $340 tipped</div>
+            <button class="btn-sm" onclick="toast('Watching @devwizard 🎮')">Watch + Tip</button>
+          </div>
+        </div>
+        <div class="stream-card">
+          <div class="stream-thumb" style="background:linear-gradient(135deg,#0a2a1a,#0a1a2a)">
+            <div class="live-badge">LIVE</div>
+            <div class="stream-thumb-icon">🎵</div>
+          </div>
+          <div class="stream-card-body">
+            <div class="stream-card-title">Crypto Lo-Fi Beats</div>
+            <div class="stream-card-meta">@soundshadow · 1,204 watching</div>
+            <div class="stream-card-tips">💰 $780 tipped</div>
+            <button class="btn-sm" onclick="toast('Vibing with @soundshadow 🎵')">Watch + Tip</button>
+          </div>
+        </div>
+        <div class="stream-card">
+          <div class="stream-thumb" style="background:linear-gradient(135deg,#2a1a0a,#1a0a0a)">
+            <div class="live-badge" style="background:var(--gold);color:#000">CHARITY</div>
+            <div class="stream-thumb-icon">❤️</div>
+          </div>
+          <div class="stream-card-body">
+            <div class="stream-card-title">Give & Win Stream</div>
+            <div class="stream-card-meta">@shadowgives · 2,100 watching</div>
+            <div class="stream-card-tips">💰 $2,400 raised</div>
+            <button class="btn-sm gold" onclick="toast('Giving to the cause ❤️')">Donate Live</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-label">Go Live Yourself</div>
+      <div class="go-live-card">
+        <div style="font-size:32px;margin-bottom:12px">📡</div>
+        <div class="go-live-title">Start Your Stream</div>
+        <p class="go-live-desc">Set a tip goal, enable gated access, or run a charity stream — all non-custodial. Your wallet, your coins.</p>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+          <button class="btn-action" onclick="toast('Stream setup coming in beta 🎬')">Go Live</button>
+          <button class="btn-action outline" onclick="toast('Charity stream setup coming 🍲')">Charity Stream</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MARKETPLACE PANEL ===== -->
+  <div class="panel" id="panel-market">
+    <div class="page-wrap">
+      <div class="page-hero">
+        <div class="page-hero-tag">👾 WEB3 MARKETPLACE</div>
+        <h2 class="page-hero-title">Talent Marketplace</h2>
+        <p class="page-hero-sub">Hire, get hired. Escrow-protected. Reputation-backed. No custody games.</p>
+      </div>
+
+      <div class="market-stats-row">
+        <div class="mstat"><div class="mstat-num">$2.4M</div><div class="mstat-label">Escrowed</div></div>
+        <div class="mstat"><div class="mstat-num">1,840</div><div class="mstat-label">Active Gigs</div></div>
+        <div class="mstat"><div class="mstat-num">98.2%</div><div class="mstat-label">Dispute Resolution</div></div>
+        <div class="mstat"><div class="mstat-num">DOGE</div><div class="mstat-label">Pay in Crypto</div></div>
+      </div>
+
+      <div class="market-tabs">
+        <button class="mtab active" onclick="setMtab(this,'gigs')">Browse Gigs</button>
+        <button class="mtab" onclick="setMtab(this,'post')">Post a Job</button>
+        <button class="mtab" onclick="setMtab(this,'my')">My Work</button>
+      </div>
+
+      <div id="market-gigs">
+        <div class="gig-grid">
+          <div class="gig-card">
+            <div class="gig-icon">🎨</div>
+            <div class="gig-title">NFT Art & Brand Identity</div>
+            <div class="gig-seller">@pixel_shadow · ⭐ 4.9 (142 reviews)</div>
+            <div class="gig-tags"><span class="gtag">Design</span><span class="gtag">NFT</span><span class="gtag">Branding</span></div>
+            <div class="gig-footer">
+              <span class="gig-price">From 500 DOGE</span>
+              <button class="btn-sm" onclick="toast('Opening escrow... 🔐')">Hire</button>
+            </div>
+          </div>
+          <div class="gig-card">
+            <div class="gig-icon">💻</div>
+            <div class="gig-title">Smart Contract Development</div>
+            <div class="gig-seller">@chainbuilder · ⭐ 5.0 (87 reviews)</div>
+            <div class="gig-tags"><span class="gtag">Solidity</span><span class="gtag">Web3</span><span class="gtag">Audit</span></div>
+            <div class="gig-footer">
+              <span class="gig-price">From 2,000 DOGE</span>
+              <button class="btn-sm" onclick="toast('Opening escrow... 🔐')">Hire</button>
+            </div>
+          </div>
+          <div class="gig-card">
+            <div class="gig-icon">📣</div>
+            <div class="gig-title">Web3 Community Growth</div>
+            <div class="gig-seller">@growthghost · ⭐ 4.8 (210 reviews)</div>
+            <div class="gig-tags"><span class="gtag">Marketing</span><span class="gtag">Discord</span><span class="gtag">Twitter</span></div>
+            <div class="gig-footer">
+              <span class="gig-price">From 800 DOGE</span>
+              <button class="btn-sm" onclick="toast('Opening escrow... 🔐')">Hire</button>
+            </div>
+          </div>
+          <div class="gig-card">
+            <div class="gig-icon">🎥</div>
+            <div class="gig-title">Video Production & Editing</div>
+            <div class="gig-seller">@shadowreel · ⭐ 4.7 (56 reviews)</div>
+            <div class="gig-tags"><span class="gtag">Video</span><span class="gtag">Editing</span><span class="gtag">Shorts</span></div>
+            <div class="gig-footer">
+              <span class="gig-price">From 300 DOGE</span>
+              <button class="btn-sm" onclick="toast('Opening escrow... 🔐')">Hire</button>
+            </div>
+          </div>
+          <div class="gig-card">
+            <div class="gig-icon">🔐</div>
+            <div class="gig-title">Security Audit & Pen Test</div>
+            <div class="gig-seller">@0xguard · ⭐ 5.0 (33 reviews)</div>
+            <div class="gig-tags"><span class="gtag">Security</span><span class="gtag">Audit</span><span class="gtag">Web3</span></div>
+            <div class="gig-footer">
+              <span class="gig-price">From 5,000 DOGE</span>
+              <button class="btn-sm" onclick="toast('Opening escrow... 🔐')">Hire</button>
+            </div>
+          </div>
+          <div class="gig-card">
+            <div class="gig-icon">✍️</div>
+            <div class="gig-title">Crypto Content & Copywriting</div>
+            <div class="gig-seller">@wordwitch · ⭐ 4.9 (178 reviews)</div>
+            <div class="gig-tags"><span class="gtag">Writing</span><span class="gtag">Web3</span><span class="gtag">SEO</span></div>
+            <div class="gig-footer">
+              <span class="gig-price">From 150 DOGE</span>
+              <button class="btn-sm" onclick="toast('Opening escrow... 🔐')">Hire</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="escrow-callout">
+        <div class="escrow-icon">🔐</div>
+        <div>
+          <div class="escrow-title">100% Escrow Protected</div>
+          <div class="escrow-desc">Funds locked until milestones confirmed. Dispute resolution built in. Your DOGE never leaves the chain.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CHARITY PANEL ===== -->
+  <div class="panel" id="panel-charity">
+    <div class="page-wrap">
+      <div class="page-hero" style="border-bottom:1px solid var(--border);padding-bottom:32px">
+        <div class="page-hero-tag" style="color:var(--gold)">🍲 NON-CUSTODIAL GIVING</div>
+        <h2 class="page-hero-title">Charity Hub</h2>
+        <p class="page-hero-sub">Wallet → cause. Direct. Transparent. No middlemen taking cuts. Win prizes while giving back.</p>
+      </div>
+
+      <div class="charity-impact-bar">
+        <div class="cib-item"><div class="cib-num">$184,200</div><div class="cib-label">Total Given</div></div>
+        <div class="cib-item"><div class="cib-num">12,840</div><div class="cib-label">Donors</div></div>
+        <div class="cib-item"><div class="cib-num">47</div><div class="cib-label">Active Causes</div></div>
+        <div class="cib-item"><div class="cib-num">0%</div><div class="cib-label">Platform Cut</div></div>
+      </div>
+
+      <div class="section-label">🔥 Featured Causes</div>
+      <div class="charity-list">
+        <div class="charity-card featured">
+          <div class="cc-left">
+            <div class="cc-icon">🏠</div>
+            <div>
+              <div class="cc-name">Hope Campus — Homeless Support</div>
+              <div class="cc-desc">Direct shelter, meals, and job training. Every DOGE goes straight to the cause.</div>
+              <div class="cc-progress-wrap">
+                <div class="cc-progress-bar"><div class="cc-progress-fill" style="width:73%"></div></div>
+                <div class="cc-progress-label">73% · $54,750 of $75,000</div>
+              </div>
+            </div>
+          </div>
+          <div class="cc-right">
+            <div class="cc-raised">$54,750</div>
+            <div class="cc-currency">in DOGE</div>
+            <button class="btn-action" onclick="toast('Donating to Hope Campus ❤️')">Give Now</button>
+            <div class="cc-win">🎁 Win prizes for giving</div>
+          </div>
+        </div>
+        <div class="charity-card">
+          <div class="cc-left">
+            <div class="cc-icon">📚</div>
+            <div>
+              <div class="cc-name">Code for Kids — Youth Dev Education</div>
+              <div class="cc-desc">Teaching coding to underserved youth. Transparent wallet, verifiable on-chain.</div>
+              <div class="cc-progress-wrap">
+                <div class="cc-progress-bar"><div class="cc-progress-fill" style="width:45%"></div></div>
+                <div class="cc-progress-label">45% · $9,000 of $20,000</div>
+              </div>
+            </div>
+          </div>
+          <div class="cc-right">
+            <div class="cc-raised">$9,000</div>
+            <div class="cc-currency">in DOGE</div>
+            <button class="btn-action" onclick="toast('Donating to Code for Kids 📚')">Give Now</button>
+            <div class="cc-win">🎁 Win prizes for giving</div>
+          </div>
+        </div>
+        <div class="charity-card">
+          <div class="cc-left">
+            <div class="cc-icon">🌱</div>
+            <div>
+              <div class="cc-name">Green Chain — Climate Action Fund</div>
+              <div class="cc-desc">Carbon offset projects funded by crypto. Every transaction traceable.</div>
+              <div class="cc-progress-wrap">
+                <div class="cc-progress-bar"><div class="cc-progress-fill" style="width:28%"></div></div>
+                <div class="cc-progress-label">28% · $14,000 of $50,000</div>
+              </div>
+            </div>
+          </div>
+          <div class="cc-right">
+            <div class="cc-raised">$14,000</div>
+            <div class="cc-currency">in DOGE</div>
+            <button class="btn-action" onclick="toast('Going green 🌱')">Give Now</button>
+            <div class="cc-win">🎁 Win prizes for giving</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="gamified-give">
+        <div class="gg-title">🎮 Gamified Giving</div>
+        <p class="gg-desc">Give and earn. Every donation enters you into quests, prize draws, and reputation rewards. Generosity gets rewarded here.</p>
+        <div class="gg-rewards">
+          <div class="gg-reward"><div class="ggr-icon">🏆</div><div class="ggr-label">Top Donor Badge</div></div>
+          <div class="gg-reward"><div class="ggr-icon">🎁</div><div class="ggr-label">Prize Draw Entry</div></div>
+          <div class="gg-reward"><div class="ggr-icon">⭐</div><div class="ggr-label">Reputation Points</div></div>
+          <div class="gg-reward"><div class="ggr-icon">🪙</div><div class="ggr-label">Token Rewards</div></div>
+        </div>
+      </div>
+
+      <div class="section-label">Start a Charity Stream</div>
+      <div class="go-live-card">
+        <div style="font-size:32px;margin-bottom:12px">🍲</div>
+        <div class="go-live-title">Run Your Own Charity Stream</div>
+        <p class="go-live-desc">Set a cause, go live, collect donations directly. Non-custodial — funds flow wallet-to-wallet with full transparency.</p>
+        <button class="btn-action gold" onclick="toast('Charity stream setup coming in beta 🍲')">Launch Charity Stream</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DREAM PANEL ===== -->
+  <div class="panel" id="panel-dream">
+    <div class="page-wrap">
+      <div class="dream-hero">
+        <div class="dream-tag">✨ THE VISION</div>
+        <h1 class="dream-title">This Is What<br/><span class="gold-text">We're Building</span></h1>
+        <p class="dream-sub">Not a pitch deck. Not a whitepaper. A living roadmap — built in public, powered by community.</p>
+      </div>
+
+      <div class="timeline">
+        <div class="tl-item done">
+          <div class="tl-dot done-dot"></div>
+          <div class="tl-content">
+            <div class="tl-phase">PHASE 1 — FOUNDATION ✓</div>
+            <div class="tl-title">The Platform is Built</div>
+            <div class="tl-desc">Social feed, real-time messaging, user auth, admin controls, kill switches, audit trails. Complete frontend + backend. Not a demo — working infrastructure.</div>
+            <div class="tl-tags"><span class="tltag done-tag">Feed ✓</span><span class="tltag done-tag">Messages ✓</span><span class="tltag done-tag">Auth ✓</span><span class="tltag done-tag">Admin ✓</span></div>
+          </div>
+        </div>
+        <div class="tl-item active">
+          <div class="tl-dot active-dot"></div>
+          <div class="tl-content">
+            <div class="tl-phase">PHASE 2 — NOW 🔥</div>
+            <div class="tl-title">Web3 Integration</div>
+            <div class="tl-desc">Non-custodial wallets. DOGE + TrumpCoin support. DEX-style swaps. Tip creators. Fund causes. Get paid. On-ramp partners confirmed. No fake exchanges. No imaginary balances.</div>
+            <div class="tl-tags"><span class="tltag active-tag">Wallets 🔧</span><span class="tltag active-tag">DOGE 🔧</span><span class="tltag active-tag">Swaps 🔧</span><span class="tltag active-tag">Tips 🔧</span></div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot future-dot"></div>
+          <div class="tl-content">
+            <div class="tl-phase">PHASE 3 — BETA LAUNCH</div>
+            <div class="tl-title">Live Streams + Marketplace</div>
+            <div class="tl-desc">Charity streams. Talent marketplace with escrow. Creator subscriptions. Live quests and engagement systems. Twitch-level streaming without Twitch's take.</div>
+            <div class="tl-tags"><span class="tltag">Streams</span><span class="tltag">Marketplace</span><span class="tltag">Subscriptions</span><span class="tltag">Quests</span></div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot future-dot"></div>
+          <div class="tl-content">
+            <div class="tl-phase">PHASE 4 — SCALE</div>
+            <div class="tl-title">VR Rooms + Governance</div>
+            <div class="tl-desc">Browser-based VR social spaces. Tokenized reputation system. Governance voting with real execution. Voice controls. AI-assisted features — all opt-in, no dark patterns.</div>
+            <div class="tl-tags"><span class="tltag">VR Rooms</span><span class="tltag">Governance</span><span class="tltag">Voice AI</span><span class="tltag">Reputation</span></div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot future-dot gold-dot"></div>
+          <div class="tl-content">
+            <div class="tl-phase" style="color:var(--gold)">PHASE 5 — THE DREAM 🌟</div>
+            <div class="tl-title">A Platform That Gives Back</div>
+            <div class="tl-desc">A world where a platform economically empowers its users. Where the community governs itself. Where creators own their audience. Where charity is gamified and generosity is rewarded. Where DOGE moons and people's lives actually get better because of it.</div>
+            <div class="tl-tags"><span class="tltag gold-tag">Community Owned</span><span class="tltag gold-tag">Creator Economy</span><span class="tltag gold-tag">Impact</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dream-manifesto">
+        <div class="dm-line">"I told everyone to buy BTC at $1K."</div>
+        <div class="dm-line">"Now I'm saying: buy DOGE. Build with us."</div>
+        <div class="dm-big">The platform others promised.<br/>We actually built it.</div>
+        <div class="dm-tag">#catchThemDiamonds</div>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:28px">
+          <button class="btn-action" onclick="showPanel('feed')">⚡ Enter the Platform</button>
+          <button class="btn-action outline" onclick="showPanel('vision')">💟 Read the Vision</button>
+          <button class="btn-action gold" onclick="showPanel('charity')">🍲 Give Back</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== SHADOW MARKET PANEL ===== -->
+  <div class="panel" id="panel-shadow">
+
+    <!-- ACCESS GATE (shown first) -->
+    <div id="sm-gate">
+      <div class="sm-gate-wrap">
+        <div class="sm-gate-skull">💀</div>
+        <div class="sm-gate-title">SHADOW MARKET</div>
+        <div class="sm-gate-sub">// anonymous · encrypted · escrow-protected</div>
+        <p class="sm-gate-desc">A private digital marketplace for creators, builders, and traders who value anonymity above all. All transactions on-chain. All identities shadowed. All disputes arbitrated.</p>
+        <div class="sm-gate-rules">
+          <div class="sm-rule"><span class="sm-rule-icon">🔐</span>Digital goods only — art, code, data, content</div>
+          <div class="sm-rule"><span class="sm-rule-icon">👻</span>Shadow aliases — your real identity never exposed</div>
+          <div class="sm-rule"><span class="sm-rule-icon">🪙</span>DOGE, USDT, BTC — non-custodial escrow only</div>
+          <div class="sm-rule"><span class="sm-rule-icon">⚖️</span>Dispute arbitration — community arbitrators, on-chain resolution</div>
+          <div class="sm-rule"><span class="sm-rule-icon">🚫</span>No illegal goods. No weapons. No exploitation. Ever.</div>
+        </div>
+        <button class="sm-enter-btn" onclick="enterShadowMarket()">ENTER THE SHADOW MARKET →</button>
+        <div class="sm-gate-foot">By entering you agree to the Shadow Market terms. All activity is logged on-chain.</div>
+      </div>
+    </div>
+
+    <!-- MARKET INTERIOR (hidden until gate passed) -->
+    <div id="sm-interior" style="display:none">
+      <div class="sm-topbar">
+        <div class="sm-topbar-left">
+          <div class="sm-skull-logo">💀 SHADOW MARKET</div>
+          <div class="sm-anon-badge" id="sm-alias-display">👤 GENERATING...</div>
+        </div>
+        <div class="sm-topbar-right">
+          <div class="sm-wallet-row">
+            <span class="sm-wlabel">ESCROW BALANCE</span>
+            <span class="sm-wbal">0.00 DOGE</span>
+          </div>
+          <button class="sm-small-btn" onclick="toast('Wallet connect coming in beta 🔐')">+ Fund Wallet</button>
+          <button class="sm-small-btn purple" onclick="openListModal()">+ List Item</button>
+        </div>
+      </div>
+
+      <div class="sm-body">
+        <!-- Left: category sidebar -->
+        <div class="sm-cat-sidebar">
+          <div class="sm-cat-label">CATEGORIES</div>
+          <button class="sm-cat active" onclick="filterCat(this,'all')">🌐 All Listings</button>
+          <button class="sm-cat" onclick="filterCat(this,'art')">🎨 Digital Art</button>
+          <button class="sm-cat" onclick="filterCat(this,'code')">💻 Source Code</button>
+          <button class="sm-cat" onclick="filterCat(this,'data')">📊 Data & Research</button>
+          <button class="sm-cat" onclick="filterCat(this,'content')">✍️ Content & Copy</button>
+          <button class="sm-cat" onclick="filterCat(this,'audio')">🎵 Audio & Music</button>
+          <button class="sm-cat" onclick="filterCat(this,'gated')">🔒 Private / Gated</button>
+
+          <div class="sm-cat-label" style="margin-top:16px">FILTER</div>
+          <div class="sm-filter-row">
+            <label class="sm-filter-label">Currency</label>
+            <select class="sm-select" onchange="toast('Filter applied')">
+              <option>Any</option>
+              <option>DOGE</option>
+              <option>USDT</option>
+              <option>BTC</option>
+            </select>
+          </div>
+          <div class="sm-filter-row">
+            <label class="sm-filter-label">Min Rep</label>
+            <select class="sm-select">
+              <option>Any</option>
+              <option>⭐ 4.0+</option>
+              <option>⭐ 4.5+</option>
+              <option>⭐ 5.0 only</option>
+            </select>
+          </div>
+          <div class="sm-filter-row">
+            <label class="sm-filter-label">Escrow</label>
+            <select class="sm-select">
+              <option>Required</option>
+              <option>Optional</option>
+            </select>
+          </div>
+
+          <div class="sm-cat-label" style="margin-top:16px">MY ACTIVITY</div>
+          <button class="sm-cat" onclick="showSmTab('purchases')">📥 Purchases</button>
+          <button class="sm-cat" onclick="showSmTab('listings')">📤 My Listings</button>
+          <button class="sm-cat" onclick="showSmTab('disputes')">⚖️ Disputes</button>
+          <button class="sm-cat" onclick="showSmTab('escrow')">🔐 Escrow</button>
+        </div>
+
+        <!-- Right: main content -->
+        <div class="sm-main">
+
+          <!-- BROWSE TAB -->
+          <div id="sm-tab-browse">
+            <div class="sm-search-row">
+              <input class="sm-search" placeholder="Search the shadows..." oninput="filterListings(this.value)"/>
+              <div class="sm-sort-row">
+                <button class="sm-sort active" onclick="setSMSort(this,'new')">Newest</button>
+                <button class="sm-sort" onclick="setSMSort(this,'price')">Price</button>
+                <button class="sm-sort" onclick="setSMSort(this,'rep')">Reputation</button>
+              </div>
+            </div>
+
+            <div class="sm-stats-strip">
+              <span>💀 <b>2,847</b> active listings</span>
+              <span>🔐 <b>$1.2M</b> in escrow</span>
+              <span>👻 <b>8,400</b> shadow sellers</span>
+              <span>⭐ <b>99.1%</b> dispute resolution</span>
+            </div>
+
+            <div class="sm-listing-grid" id="sm-listing-grid"></div>
+          </div>
+
+          <!-- PURCHASES TAB -->
+          <div id="sm-tab-purchases" style="display:none">
+            <div class="sm-tab-head">📥 Your Purchases</div>
+            <div class="sm-empty-tab">
+              <div style="font-size:40px;margin-bottom:12px">🛒</div>
+              <div style="color:var(--muted);font-family:var(--font-m);font-size:12px">No purchases yet.<br/>Browse the market to find something.</div>
+              <button class="sm-small-btn" style="margin-top:16px" onclick="showSmTab('browse')">Browse Listings</button>
+            </div>
+          </div>
+
+          <!-- MY LISTINGS TAB -->
+          <div id="sm-tab-listings" style="display:none">
+            <div class="sm-tab-head">📤 Your Listings</div>
+            <div class="sm-empty-tab">
+              <div style="font-size:40px;margin-bottom:12px">📦</div>
+              <div style="color:var(--muted);font-family:var(--font-m);font-size:12px">You haven't listed anything yet.</div>
+              <button class="sm-small-btn purple" style="margin-top:16px" onclick="openListModal()">+ Create Listing</button>
+            </div>
+          </div>
+
+          <!-- DISPUTES TAB -->
+          <div id="sm-tab-disputes" style="display:none">
+            <div class="sm-tab-head">⚖️ Dispute Arbitration</div>
+            <div class="sm-dispute-info">
+              <div class="sdi-icon">⚖️</div>
+              <div>
+                <div class="sdi-title">On-Chain Arbitration System</div>
+                <div class="sdi-desc">Every transaction has a 72-hour dispute window. Community arbitrators review evidence. Escrow released on resolution. Reputation updated automatically.</div>
+              </div>
+            </div>
+            <div class="sm-empty-tab" style="margin-top:16px">
+              <div style="color:var(--muted);font-family:var(--font-m);font-size:12px">No active disputes.</div>
+            </div>
+          </div>
+
+          <!-- ESCROW TAB -->
+          <div id="sm-tab-escrow" style="display:none">
+            <div class="sm-tab-head">🔐 Escrow Dashboard</div>
+            <div class="sm-escrow-explainer">
+              <div class="see-step"><div class="see-num">1</div><div><b>Buyer deposits</b> crypto into smart escrow</div></div>
+              <div class="see-arrow">→</div>
+              <div class="see-step"><div class="see-num">2</div><div><b>Seller delivers</b> digital goods</div></div>
+              <div class="see-arrow">→</div>
+              <div class="see-step"><div class="see-num">3</div><div><b>Buyer confirms</b> receipt</div></div>
+              <div class="see-arrow">→</div>
+              <div class="see-step"><div class="see-num">4</div><div><b>Funds released</b> to seller</div></div>
+            </div>
+            <div class="sm-escrow-balances">
+              <div class="seb-card"><div class="seb-label">IN ESCROW (as buyer)</div><div class="seb-val">0.00 DOGE</div></div>
+              <div class="seb-card"><div class="seb-label">PENDING RELEASE (as seller)</div><div class="seb-val">0.00 DOGE</div></div>
+              <div class="seb-card"><div class="seb-label">LIFETIME EARNED</div><div class="seb-val">0.00 DOGE</div></div>
+            </div>
+          </div>
+
+        </div><!-- /sm-main -->
+      </div><!-- /sm-body -->
+    </div><!-- /sm-interior -->
+
+    <!-- LIST ITEM MODAL -->
+    <div class="sm-modal-overlay" id="sm-modal" style="display:none" onclick="closeListModal()">
+      <div class="sm-modal" onclick="event.stopPropagation()">
+        <div class="sm-modal-head">
+          <span>💀 New Shadow Listing</span>
+          <button class="sm-modal-close" onclick="closeListModal()">✕</button>
+        </div>
+        <div class="sm-modal-body">
+          <div class="sm-mfield"><label>Title</label><input type="text" id="sl-title" placeholder="What are you selling?"/></div>
+          <div class="sm-mfield"><label>Category</label>
+            <select id="sl-cat">
+              <option value="art">🎨 Digital Art</option>
+              <option value="code">💻 Source Code</option>
+              <option value="data">📊 Data & Research</option>
+              <option value="content">✍️ Content & Copy</option>
+              <option value="audio">🎵 Audio & Music</option>
+              <option value="gated">🔒 Private / Gated</option>
+            </select>
+          </div>
+          <div class="sm-mfield"><label>Description</label><textarea id="sl-desc" placeholder="Describe what the buyer gets..."></textarea></div>
+          <div class="sm-mfield-row">
+            <div class="sm-mfield">
+              <label>Price</label>
+              <input type="number" id="sl-price" placeholder="0.00"/>
+            </div>
+            <div class="sm-mfield">
+              <label>Currency</label>
+              <select id="sl-currency">
+                <option>DOGE</option>
+                <option>USDT</option>
+                <option>BTC</option>
+              </select>
+            </div>
+          </div>
+          <div class="sm-mfield">
+            <label>Access Type</label>
+            <select id="sl-access">
+              <option value="public">🌐 Public listing</option>
+              <option value="invite">🔒 Invite-only (gated)</option>
+            </select>
+          </div>
+          <div class="sm-mcheck">
+            <input type="checkbox" id="sl-escrow" checked/>
+            <label for="sl-escrow">Require escrow protection (recommended)</label>
+          </div>
+          <button class="sm-enter-btn" style="margin-top:8px" onclick="submitListing()">PUBLISH LISTING →</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /panel-shadow -->
+
+</div>
+```
+
+  </div>
+</div>
+
+<script>
+/* ============ DB ============ */
+const DB = {
+  users:    JSON.parse(localStorage.getItem('sc_users')    || '[]'),
+  posts:    JSON.parse(localStorage.getItem('sc_posts')    || '[]'),
+  messages: JSON.parse(localStorage.getItem('sc_messages') || '{}'),
+  save() {
+    localStorage.setItem('sc_users',    JSON.stringify(this.users));
+    localStorage.setItem('sc_posts',    JSON.stringify(this.posts));
+    localStorage.setItem('sc_messages', JSON.stringify(this.messages));
+  },
+  getUser(u)     { return this.users.find(x => x.username === u); },
+  getUserById(i) { return this.users.find(x => x.id === i); },
+  addUser(username, password) {
+    const u = { id: crypto.randomUUID(), username, password, createdAt: Date.now() };
+    this.users.push(u); this.save(); return u;
+  },
+  addPost(content, authorId, authorName) {
+    const p = { id: crypto.randomUUID(), content, authorId, authorName,
+                reactions: { LIKE:[], LAUGH:[], FIRE:[] }, createdAt: Date.now() };
+    this.posts.unshift(p);
+    if (this.posts.length > 300) this.posts = this.posts.slice(0,300);
+    this.save(); return p;
+  },
+  toggleReaction(postId, type, userId) {
+    const p = this.posts.find(x => x.id === postId); if (!p) return;
+    if (!p.reactions) p.reactions = { LIKE:[], LAUGH:[], FIRE:[] };
+    const arr = p.reactions[type]; const i = arr.indexOf(userId);
+    if (i === -1) arr.push(userId); else arr.splice(i,1);
+    this.save();
+  },
+  addMessage(fromId, fromName, toId, content) {
+    const key = [fromId,toId].sort().join('_');
+    if (!this.messages[key]) this.messages[key] = [];
+    const m = { id: crypto.randomUUID(), fromId, fromName, toId, content, createdAt: Date.now() };
+    this.messages[key].push(m); this.save(); return m;
+  },
+  getMessages(a, b) { return this.messages[[a,b].sort().join('_')] || []; }
+};
+
+/* ============ STATE ============ */
+let user = null, activePanel = 'feed', activeChat = null;
+
+/* ============ AUTH ============ */
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active',(tab==='login')===(i===0)));
+  document.getElementById('login-form').style.display    = tab==='login'    ? 'block':'none';
+  document.getElementById('register-form').style.display = tab==='register' ? 'block':'none';
+  clearErr();
+}
+function showErr(m) { const e=document.getElementById('auth-error'); e.textContent=m; e.style.display='block'; }
+function clearErr()  { document.getElementById('auth-error').style.display='none'; }
+
+function login() {
+  const u=v('login-user'), p=v('login-pass');
+  if (!u||!p) return showErr('Please fill in all fields.');
+  const found = DB.getUser(u);
+  if (!found||found.password!==p) return showErr('Incorrect username or password.');
+  beginSession(found);
+}
+function register() {
+  const u=v('reg-user'), p=v('reg-pass'), c=v('reg-confirm');
+  if (!u||!p) return showErr('Please fill in all fields.');
+  if (u.length<3) return showErr('Username needs 3+ characters.');
+  if (p.length<6) return showErr('Password needs 6+ characters.');
+  if (p!==c) return showErr("Passwords don't match.");
+  if (DB.getUser(u)) return showErr('Username already taken.');
+  beginSession(DB.addUser(u,p));
+}
+
+function beginSession(u_) {
+  user = u_;
+  sessionStorage.setItem('sc_sess', JSON.stringify(u_));
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display  = 'flex';
+  ['nav-avatar','comp-avatar','prof-avatar'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.textContent = user.username[0].toUpperCase();
+  });
+  document.getElementById('nav-uname').textContent       = user.username;
+  document.getElementById('prof-name').textContent       = user.username.toUpperCase();
+  document.getElementById('prof-handle').textContent     = '@' + user.username;
+  document.getElementById('settings-uname').textContent  = user.username;
+  showPanel('feed');
+}
+
+function logout() {
+  user=null; activeChat=null;
+  sessionStorage.removeItem('sc_sess');
+  document.getElementById('auth-screen').style.display='flex';
+  document.getElementById('app-screen').style.display='none';
+  document.getElementById('login-user').value='';
+  document.getElementById('login-pass').value='';
+}
+
+// Auto-restore session
+(function(){
+  try {
+    const s = sessionStorage.getItem('sc_sess');
+    if (s) { const u_=JSON.parse(s); if (DB.getUser(u_.username)) beginSession(u_); }
+  } catch(e){}
+})();
+
+/* ============ NAVIGATION ============ */
+function showPanel(name) {
+  activePanel = name;
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  ['feed','messages','profile','settings','vision','streams','market','charity','dream','shadow'].forEach(n => {
+    document.getElementById('nav-'+n)?.classList.toggle('active',n===name);
+    document.getElementById('sb-'+n)?.classList.toggle('active',n===name);
+  });
+  if (name==='feed')     renderFeed();
+  if (name==='messages') renderUsersList();
+  if (name==='profile')  renderProfile();
+}
+
+/* ============ FEED — FeedPage + PostCard + ReactionBar + UserBadge ============ */
+function updateChar() {
+  document.getElementById('char-count').textContent = document.getElementById('post-input').value.length;
+}
+function submitPost() {
+  const inp = document.getElementById('post-input');
+  const c = inp.value.trim(); if (!c) return;
+  DB.addPost(c, user.id, user.username);
+  inp.value=''; updateChar(); renderFeed(); toast('Posted ⚡');
+}
+
+const REACTIONS = { LIKE:'⚡', LAUGH:'😂', FIRE:'🔥' };
+
+function renderFeed() {
+  const el = document.getElementById('feed-posts'); if (!el) return;
+  if (!DB.posts.length) {
+    el.innerHTML=`<div class="empty-state"><div class="ei">👻</div><p>No posts yet.<br/>Be the first to say something.</p></div>`;
+    return;
+  }
+  el.innerHTML = DB.posts.map(post => {
+    // UserBadge — your UserBadge.tsx (@userId pattern, upgraded)
+    const badge = `<div class="user-badge">
+      <div class="avatar" style="width:34px;height:34px;font-size:13px">${esc(post.authorName[0]).toUpperCase()}</div>
+      <div><div class="user-badge-name">${esc(post.authorName)}</div>
+      <div class="user-badge-handle">@${esc(post.authorName.toLowerCase())} · ${ago(post.createdAt)}</div></div>
+    </div>`;
+    // ReactionBar — your LIKE, LAUGH, FIRE
+    const rbar = Object.entries(REACTIONS).map(([type,icon]) => {
+      const arr = post.reactions?.[type]||[];
+      return `<button class="reaction-btn ${arr.includes(user?.id)?'active':''}" onclick="react('${post.id}','${type}')">
+        ${icon} ${arr.length||''}
+      </button>`;
+    }).join('');
+    return `<div class="post-card">${badge}<div class="post-content">${esc(post.content)}</div><div class="reaction-bar">${rbar}</div></div>`;
+  }).join('');
+}
+
+function react(postId, type) { DB.toggleReaction(postId,type,user.id); renderFeed(); }
+
+/* ============ PROFILE ============ */
+function renderProfile() {
+  const myPosts = DB.posts.filter(p => p.authorId===user.id);
+  const totalLikes = myPosts.reduce((s,p) => s+Object.values(p.reactions||{}).reduce((a,arr)=>a+arr.length,0),0);
+  document.getElementById('stat-posts').textContent = myPosts.length;
+  document.getElementById('stat-likes').textContent = totalLikes;
+  const el = document.getElementById('profile-posts'); if (!el) return;
+  el.innerHTML = myPosts.length
+    ? myPosts.map(p=>`<div class="post-card"><div class="post-content">${esc(p.content)}</div><div style="font-family:var(--font-m);font-size:10px;color:var(--muted);margin-top:10px">${ago(p.createdAt)}</div></div>`).join('')
+    : `<div class="empty-state"><div class="ei">✏️</div><p>You haven't posted yet.</p></div>`;
+}
+
+/* ============ MESSAGES — ChatRoom + MessageBubble + ChatHeader + ChatInput ============ */
+function renderUsersList() {
+  const el = document.getElementById('users-list'); if (!el) return;
+  const others = DB.users.filter(u_=>u_.id!==user.id);
+  if (!others.length) {
+    el.innerHTML=`<div style="padding:20px;color:var(--muted);font-size:12px;text-align:center;font-family:var(--font-m)">No other users yet.</div>`;
+    return;
+  }
+  el.innerHTML = others.map(u_ => {
+    const msgs = DB.getMessages(user.id,u_.id);
+    const last = msgs[msgs.length-1];
+    const preview = last ? (last.fromId===user.id?'You: ':'')+last.content : 'Start a conversation';
+    return `<div class="user-item ${activeChat?.id===u_.id?'active':''}" onclick="openChat('${u_.id}')">
+      <div class="avatar" style="width:34px;height:34px;font-size:13px">${u_.username[0].toUpperCase()}</div>
+      <div class="user-item-info">
+        <div class="user-item-name">${esc(u_.username)}</div>
+        <div class="user-item-preview">${esc(preview.slice(0,36))}</div>
+      </div>
+      <div class="online-dot"></div>
+    </div>`;
+  }).join('');
+}
+
+function openChat(userId) {
+  activeChat = DB.getUserById(userId); if (!activeChat) return;
+  renderUsersList(); renderChatRoom();
+}
+
+// ChatRoom — your ChatRoom.tsx structure
+function renderChatRoom() {
+  const el = document.getElementById('chat-room'); if (!el||!activeChat) return;
+  const msgs = DB.getMessages(user.id, activeChat.id);
+
+  // ChatHeader
+  const header = `<div class="chat-header">
+    <div class="avatar" style="width:34px;height:34px;font-size:13px">${activeChat.username[0].toUpperCase()}</div>
+    <div><div class="chat-header-name">${esc(activeChat.username)}</div><div class="chat-header-status">● online</div></div>
+  </div>`;
+
+  // MessageBubbles — your MessageBubble.tsx (from: sender, text: content)
+  const bubbles = msgs.length
+    ? msgs.map(m => {
+        const mine = m.fromId===user.id;
+        return `<div class="msg-bubble ${mine?'mine':'theirs'}">
+          <div class="bubble-from">${mine?'You':esc(m.fromName)}</div>
+          <div class="bubble-body">${esc(m.content)}</div>
+          <div class="bubble-time">${ago(m.createdAt)}</div>
+        </div>`;
+      }).join('')
+    : `<div style="text-align:center;color:var(--muted);font-family:var(--font-m);font-size:11px;padding:40px 0">Start the conversation 👻</div>`;
+
+  // ChatInput
+  const inputRow = `<div class="chat-input-row">
+    <textarea class="chat-input" id="chat-input" placeholder="Message ${esc(activeChat.username)}..." onkeydown="chatKey(event)"></textarea>
+
+```
+<button class="btn-send" onclick="sendMsg()">↑</button>
+```
+
+  </div>`;
+
+el.innerHTML = header + `<div class="chat-messages" id="chat-msgs">${bubbles}</div>` + inputRow;
+setTimeout(()=>{ const m=document.getElementById(‘chat-msgs’); if(m) m.scrollTop=m.scrollHeight; },30);
+}
+
+function chatKey(e) { if(e.key===‘Enter’&&!e.shiftKey){e.preventDefault();sendMsg();} }
+
+function sendMsg() {
+const inp=document.getElementById(‘chat-input’); if(!inp) return;
+const c=inp.value.trim(); if(!c||!activeChat) return;
+DB.addMessage(user.id,user.username,activeChat.id,c);
+inp.value=’’; renderChatRoom(); renderUsersList();
+}
+
+/* ============ SHADOW MARKET ============ */
+const SHADOW_ADJECTIVES = [‘Ghost’,‘Phantom’,‘Dark’,‘Void’,‘Neon’,‘Cipher’,‘Null’,‘Specter’,‘Veil’,‘Rogue’,‘Echo’,‘Onyx’];
+const SHADOW_NOUNS      = [‘Trader’,‘Vendor’,‘Node’,‘Signal’,‘Key’,‘Byte’,‘Shade’,‘Wraith’,‘Cipher’,‘Pulse’,‘Vector’,‘Flux’];
+
+function genAlias() {
+const a = SHADOW_ADJECTIVES[Math.floor(Math.random()*SHADOW_ADJECTIVES.length)];
+const n = SHADOW_NOUNS[Math.floor(Math.random()*SHADOW_NOUNS.length)];
+const d = Math.floor(Math.random()*9000)+1000;
+return `${a}${n}#${d}`;
+}
+
+const SM_LISTINGS = [
+{ id:1, cat:‘art’,     icon:‘🎨’, title:‘Generative Shadow Collection — 50 unique AI art pieces’, seller:‘GhostPainter#4421’, rep:‘⭐ 4.9 (203)’, price:‘1,200’, currency:‘DOGE’, gated:false, escrow:true,  desc:‘50 high-resolution generative pieces. Delivered as PNG + source prompts. Commercial license included.’ },
+{ id:2, cat:‘code’,    icon:‘💻’, title:‘Anonymous Auth System — NestJS + JWT + Shadow IDs’, seller:‘VoidCoder#7734’,    rep:‘⭐ 5.0 (88)’,  price:‘2,800’, currency:‘DOGE’, gated:false, escrow:true,  desc:‘Production-ready anonymous auth. Shadow alias generation, JWT rotation, full test suite.’ },
+{ id:3, cat:‘data’,    icon:‘📊’, title:‘Web3 Market Signals — 6 months historical DOGE/BTC data’, seller:‘NeonAnalyst#1192’, rep:‘⭐ 4.8 (56)’,  price:‘500’,   currency:‘USDT’, gated:false, escrow:true,  desc:‘Cleaned CSV + JSON. Sentiment scoring, volume analysis, price correlation. Updated weekly.’ },
+{ id:4, cat:‘content’, icon:‘✍️’, title:‘100 Crypto Twitter Threads — Done-for-you growth content’, seller:‘CipherWriter#3308’, rep:‘⭐ 4.9 (174)’, price:‘300’,   currency:‘DOGE’, gated:false, escrow:true,  desc:‘100 pre-written, evergreen crypto threads. Edit & post. Built for engagement and reach.’ },
+{ id:5, cat:‘audio’,   icon:‘🎵’, title:‘Dark Ambient Web3 Pack — 20 royalty-free tracks’, seller:‘PhantomSound#6621’, rep:‘⭐ 4.7 (44)’,  price:‘800’,   currency:‘DOGE’, gated:false, escrow:true,  desc:‘20 cinematic, dark ambient tracks. WAV + MP3. Perfect for NFT drops, stream overlays, VR rooms.’ },
+{ id:6, cat:‘gated’,   icon:‘🔒’, title:’[GATED] Shadow API Toolkit — invite only’, seller:‘SpecterDev#9901’,   rep:‘⭐ 5.0 (12)’,  price:‘5,000’, currency:‘DOGE’, gated:true,  escrow:true,  desc:‘Private access only. DM seller for invite. Full API suite for anonymous platform building.’ },
+{ id:7, cat:‘code’,    icon:‘💻’, title:‘DOGE Wallet Integration Kit — React + Web3.js’, seller:‘EchoNode#2281’,    rep:‘⭐ 4.9 (67)’,  price:‘1,500’, currency:‘DOGE’, gated:false, escrow:true,  desc:‘Drop-in React components for DOGE wallet connect, balance display, and send/receive flows.’ },
+{ id:8, cat:‘art’,     icon:‘🎨’, title:‘Shadow Brand Identity Pack — logo + motion graphics’, seller:‘VeilDesign#5512’,   rep:‘⭐ 5.0 (29)’,  price:‘2,200’, currency:‘USDT’, gated:false, escrow:true,  desc:‘Full brand kit. SVG logo, animated versions, color system, font pairing. Figma source included.’ },
+{ id:9, cat:‘data’,    icon:‘📊’, title:‘NFT Buyer Behavior Dataset — 90 days Ethereum + SOL’, seller:‘NullVector#8847’,   rep:‘⭐ 4.6 (33)’,  price:‘750’,   currency:‘USDT’, gated:false, escrow:true,  desc:‘Anonymized wallet behavior data. Purchase patterns, hold times, flip frequency by collection.’ },
+{ id:10,cat:‘gated’,   icon:‘🔒’, title:’[GATED] Alpha Group Access — private signal channel’, seller:‘RogueSignal#4493’,  rep:‘⭐ 4.8 (91)’,  price:‘3,000’, currency:‘DOGE’, gated:true,  escrow:false, desc:‘Private channel invite. Weekly alpha signals, early project access, governance voting power.’ },
+{ id:11,cat:‘content’, icon:‘✍️’, title:‘Web3 Whitepaper Template — investor-ready’, seller:‘OnxyCopy#7723’,     rep:‘⭐ 4.9 (55)’,  price:‘400’,   currency:‘DOGE’, gated:false, escrow:true,  desc:‘Professionally structured whitepaper template. Tokenomics section, roadmap layout, legal disclaimers.’ },
+{ id:12,cat:‘audio’,   icon:‘🎵’, title:‘Livestream Alert Pack — hype sounds + transitions’, seller:‘FluxAudio#3314’,    rep:‘⭐ 4.8 (88)’,  price:‘200’,   currency:‘DOGE’, gated:false, escrow:true,  desc:‘30 custom stream alerts, transition swooshes, and donation sounds. OBS-ready. Instant delivery.’ },
+];
+
+let smListings = […SM_LISTINGS];
+let smAliasGenerated = false;
+
+function enterShadowMarket() {
+document.getElementById(‘sm-gate’).style.display = ‘none’;
+document.getElementById(‘sm-interior’).style.display = ‘flex’;
+document.getElementById(‘sm-interior’).style.flexDirection = ‘column’;
+if (!smAliasGenerated) {
+const alias = genAlias();
+sessionStorage.setItem(‘sm_alias’, alias);
+smAliasGenerated = true;
+const el = document.getElementById(‘sm-alias-display’);
+let i = 0;
+const chars = ‘!@#$%^&*ABCDEFGHIJKLMNabcdefghijklmn0123456789’;
+const scramble = setInterval(() => {
+el.textContent = ‘👤 ’ + Array.from({length:alias.length}, (_,j) => j < i ? alias[j] : chars[Math.floor(Math.random()*chars.length)]).join(’’);
+i++;
+if (i > alias.length) { clearInterval(scramble); el.textContent = ’👤 ’ + alias; }
+}, 40);
+}
+renderSMListings(smListings);
+}
+
+function renderSMListings(list) {
+const grid = document.getElementById(‘sm-listing-grid’);
+if (!grid) return;
+if (!list.length) { grid.innerHTML = `<div style="color:var(--muted);font-family:var(--font-m);font-size:12px;padding:40px;text-align:center">No listings match your search.</div>`; return; }
+grid.innerHTML = list.map(l => ` <div class="sm-card ${l.gated?'gated':''}" onclick="buySMItem(${l.id})"> <div class="sm-card-header"> <span class="sm-card-cat">${l.cat.toUpperCase()}</span> ${l.gated ? '<span class="sm-card-badge sm-badge-gated">🔒 GATED</span>' : l.escrow ? '<span class="sm-card-badge sm-badge-escrow">🔐 ESCROW</span>' : ''} </div> <div class="sm-card-icon">${l.icon}</div> <div class="sm-card-title">${l.title}</div> <div class="sm-card-seller">👤 <span>${l.seller}</span></div> <div class="sm-card-rep">${l.rep}</div> <div class="sm-card-desc">${l.desc}</div> <div class="sm-card-footer"> <span class="sm-card-price ${l.gated?'gold':''}">${l.price} ${l.currency}</span> <button class="sm-buy-btn ${l.gated?'gold':''}">${l.gated ? 'Request Access' : 'Buy + Escrow'}</button> </div> </div>`).join(’’);
+}
+
+function buySMItem(id) {
+const item = SM_LISTINGS.find(l => l.id === id);
+if (!item) return;
+if (item.gated) { toast(`🔒 Requesting access to ${item.seller}...`); return; }
+toast(`🔐 Opening escrow for ${item.price} ${item.currency}...`);
+setTimeout(() => toast(‘✅ Escrow created. Awaiting seller delivery.’), 1800);
+}
+
+function filterListings(q) {
+const query = q.toLowerCase();
+smListings = SM_LISTINGS.filter(l =>
+l.title.toLowerCase().includes(query) ||
+l.desc.toLowerCase().includes(query) ||
+l.cat.includes(query)
+);
+renderSMListings(smListings);
+}
+
+function filterCat(el, cat) {
+document.querySelectorAll(’.sm-cat’).forEach(b => b.classList.remove(‘active’));
+el.classList.add(‘active’);
+showSmTab(‘browse’);
+smListings = cat === ‘all’ ? […SM_LISTINGS] : SM_LISTINGS.filter(l => l.cat === cat);
+renderSMListings(smListings);
+}
+
+function setSMSort(el, type) {
+document.querySelectorAll(’.sm-sort’).forEach(b => b.classList.remove(‘active’));
+el.classList.add(‘active’);
+if (type === ‘price’) smListings = […smListings].sort((a,b) => parseFloat(a.price.replace(’,’,’’)) - parseFloat(b.price.replace(’,’,’’)));
+if (type === ‘rep’)   smListings = […smListings].sort((a,b) => parseFloat(b.rep.match(/[\d.]+/)[0]) - parseFloat(a.rep.match(/[\d.]+/)[0]));
+if (type === ‘new’)   smListings = […smListings].sort((a,b) => b.id - a.id);
+renderSMListings(smListings);
+}
+
+function showSmTab(tab) {
+[‘browse’,‘purchases’,‘listings’,‘disputes’,‘escrow’].forEach(t => {
+const el = document.getElementById(‘sm-tab-’+t);
+if (el) el.style.display = t === tab ? ‘flex’ : ‘none’;
+if (el && t === tab) el.style.flexDirection = ‘column’;
+});
+}
+
+function openListModal()  { document.getElementById(‘sm-modal’).style.display = ‘flex’; }
+function closeListModal() { document.getElementById(‘sm-modal’).style.display = ‘none’; }
+
+function submitListing() {
+const title = document.getElementById(‘sl-title’).value.trim();
+const price = document.getElementById(‘sl-price’).value;
+const currency = document.getElementById(‘sl-currency’).value;
+if (!title || !price) { toast(‘Fill in title and price 💀’); return; }
+closeListModal();
+toast(`💀 "${title}" listed for ${price} ${currency}`);
+setTimeout(() => toast(‘🔐 Escrow contract generated on-chain’), 1200);
+}
+
+/* ============ MARKETPLACE TAB ============ */
+function setMtab(el, tab) {
+document.querySelectorAll(’.mtab’).forEach(b => b.classList.remove(‘active’));
+el.classList.add(‘active’);
+const msgs = { gigs:‘Browsing gigs 👾’, post:‘Post a job coming in beta 📋’, my:‘Your work dashboard coming in beta 📊’ };
+if (tab !== ‘gigs’) toast(msgs[tab]);
+}
+
+/* ============ UTILS ============ */
+function v(id) { return document.getElementById(id)?.value.trim()||’’; }
+function esc(s) { return String(s).replace(/&/g,’&’).replace(/</g,’<’).replace(/>/g,’>’); }
+function ago(ts) {
+const d=Date.now()-ts;
+if(d<60000)    return ‘just now’;
+if(d<3600000)  return Math.floor(d/60000)+‘m ago’;
+if(d<86400000) return Math.floor(d/3600000)+‘h ago’;
+return Math.floor(d/86400000)+‘d ago’;
+}
+function toast(msg) {
+const el=document.createElement(‘div’); el.className=‘toast’; el.textContent=msg;
+document.body.appendChild(el); setTimeout(()=>el.remove(),2800);
+}
+
+document.addEventListener(‘keydown’, e => {
+if (e.key!==‘Enter’) return;
+const auth=document.getElementById(‘auth-screen’);
+if(!auth||auth.style.display===‘none’) return;
+if(document.getElementById(‘login-form’).style.display!==‘none’) login();
+else register();
+});
+</script>
+
 </body>
 </html>
