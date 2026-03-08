@@ -1,91 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ShadowChat</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    :root {
-      --bg: #0b0f1a;
-      --panel: #12182a;
-      --accent: #7aa2ff;
-      --text: #eaeaf0;
-      --muted: #9aa4c7;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont;
-      background: var(--bg);
-      color: var(--text);
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .app {
-      width: 100%;
-      max-width: 420px;
-      background: var(--panel);
-      border-radius: 14px;
-      padding: 1.5rem;
-      box-shadow: 0 0 40px rgba(0,0,0,.5);
-    }
-    h1 {
-      margin: 0 0 .25rem 0;
-      color: var(--accent);
-      font-size: 1.4rem;
-    }
-    p {
-      margin: 0 0 1rem 0;
-      color: var(--muted);
-      font-size: .9rem;
-    }
-    .chat {
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: 10px;
-      height: 240px;
-      padding: .75rem;
-      overflow-y: auto;
-      margin-bottom: .75rem;
-      font-size: .9rem;
-    }
-    .input {
-      display: flex;
-      gap: .5rem;
-    }
-    input {
-      flex: 1;
-      background: #0f1424;
-      border: none;
-      border-radius: 8px;
-      padding: .6rem .7rem;
-      color: var(--text);
-    }
-    button {
-      background: var(--accent);
-      border: none;
-      border-radius: 8px;
-      padding: .6rem .9rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-  </style>
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="app">
+  <header>
     <h1>ShadowChat</h1>
-    <p>Private • Real-time • Experimental</p>
+    <nav>
+      <button id="btn-feed">Feed</button>
+      <button id="btn-chat">Chat</button>
+      <button id="btn-wallet">Wallet</button>
+    </nav>
+  </header>
 
-    <div class="chat">
-      <div>🟢 System: UI online</div>
-      <div>🟣 Shadow: waiting…</div>
-    </div>
+  <main>
+    <!-- Feed Section -->
+    <section id="feed" class="active">
+      <h2>Global Feed</h2>
+      <div id="feed-container">
+        <p>Loading feed...</p>
+      </div>
+    </section>
 
-    <div class="input">
-      <input placeholder="Type a message…" />
-      <button>Send</button>
-    </div>
-  </div>
+    <!-- Chat Section -->
+    <section id="chat">
+      <h2>Chat Room</h2>
+      <div id="chat-container">
+        <div id="messages"></div>
+        <input type="text" id="chat-input" placeholder="Type your message..." />
+        <button id="send-btn">Send</button>
+      </div>
+    </section>
+
+    <!-- Wallet Section -->
+    <section id="wallet">
+      <h2>Crypto Wallet</h2>
+      <p>BTC: <span id="btc-balance">0</span></p>
+      <p>DOGE: <span id="doge-balance">0</span></p>
+      <p>TrumpCoin: <span id="trump-balance">0</span></p>
+      <button id="refresh-wallet">Refresh</button>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2026 ShadowChat • Built for Web3 & AI-powered social interaction</p>
+  </footer>
+
+  <!-- JS -->
+  <script src="scripts.js"></script>
 </body>
 </html>
