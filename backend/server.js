@@ -10,9 +10,13 @@ const moderationRoutes = require("./routes/moderation");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Security & logging
+// Security headers
 app.use(helmet());
+
+// Logging requests
 app.use(morgan("dev"));
+
+// JSON parsing
 app.use(express.json());
 
 // Serve frontend
